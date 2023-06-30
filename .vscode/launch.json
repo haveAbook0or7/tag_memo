@@ -1,0 +1,48 @@
+{
+    // IntelliSense を使用して利用可能な属性を学べます。
+    // 既存の属性の説明をホバーして表示します。
+    // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "tag_memo",
+            "cwd": "tag_memo",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "tag_memo (profile mode)",
+            "cwd": "tag_memo",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "tag_memo (release mode)",
+            "cwd": "tag_memo",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "tag_memo_sample",
+            "cwd": "tag_memo_sample",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "tag_memo_sample (profile mode)",
+            "cwd": "tag_memo_sample",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "tag_memo_sample (release mode)",
+            "cwd": "tag_memo_sample",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

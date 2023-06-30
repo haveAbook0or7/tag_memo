@@ -3,42 +3,42 @@ import 'package:flutter/material.dart';
 import 'customTile.dart';
 
 class DropdownTile extends StatelessWidget {
-  String title;
-  String value;
-  List<String> items;
-  void Function(String) onChanged;
   
   DropdownTile({
-    this.title = "",
+    this.title = '',
     this.value,
     this.items,
-    this.onChanged,
+    required void Function(String) onChanged,
   });
+  String title;
+  late String? value;
+  late List<String>? items;
+  late void Function(String) onChanged;
 
   @override
   Widget build(BuildContext context) {
-    this.items = this.items == null ? [] : this.items;
-    this.onChanged = this.onChanged == null ? (newValue){} : this.onChanged;
+    items = items ?? [];
+    onChanged = onChanged ?? (newValue){};
 
       return LayoutBuilder(builder: (context, constraints) {
         return CustomTile(
-          title: Text(this.title, style: TextStyle(fontSize: 16),),
+          title: Text(title!, style: const TextStyle(fontSize: 16),),
           trailing: DropdownButton<String>(
-            icon: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).accentColor,),
+            icon: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).primaryColor,),//TODO accent
             iconSize: 22,
             underline: Container(
               height: 2,
-              color: Theme.of(context).accentColor,
+              color: Theme.of(context).primaryColor,//TODO accent
             ),
-            value: this.value,
-            items: this.items.map<DropdownMenuItem<String>>((String value) {
+            value: value,
+            items: items?.map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(value),
               );
             }).toList(),
-            onChanged: (String newValue) async {
-              this.onChanged(newValue);
+            onChanged: (newValue) {
+              onChanged(newValue!);
             },
           ),
         );

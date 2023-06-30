@@ -3,38 +3,51 @@ import 'package:flutter/material.dart';
 import 'package:tag_memo/customWidget/husenContainer.dart';
 import "dart:async";
 
+
 // ignore: must_be_immutable
 class ReorderableHusenView extends StatefulWidget {
+
+  ReorderableHusenView._init({
+    this.crossAxisCount = 3,
+    this.axisSpacing = 4.0,
+    required this.children,
+    required this.keys,
+    required this.colors,
+    required this.onReorder,
+    required this.onTap,
+    Key key = const Key(''),
+  }) : super(key: key);
+
   /// 列の数
   final int crossAxisCount;
   /// 付箋と付箋の間の隙間
   final double axisSpacing;
   /// アイテム数
-  int itemcount;
+  late int itemcount;
   /// アイテム
-  List<Widget> children = [];
-  Widget Function(int) itembuilder;
+  late List<Widget?> children = [];
+  late Widget Function(int) itembuilder;
   /// 入れ替え後返して欲しい配列データを入れる。キーとか
-  List<dynamic> keys = [];
-  dynamic Function(int) keybuilder;
+  late List<dynamic> keys = [];
+  late dynamic Function(int) keybuilder;
   /// 付箋の色
-  List<HusenColor> colors = [];
-  HusenColor Function(int) colorsbuilder;
+  late List<HusenColor?> colors = [];
+  late HusenColor Function(int) colorsbuilder;
   /// 入れ替え後keysを親へ渡す
-  Function(dynamic keys) onReorder;
+  late void Function(List<dynamic> keys) onReorder;
   /// ジェスチャー類
-  Function(int index) onTap;
+  late void Function(int index) onTap;
 
   ReorderableHusenView.builder({
-    crossAxisCount = 3,
-    axisSpacing = 4.0,
-    @required itembuilder,
-    @required itemcount,
-    @required keybuilder,
-    colorsbuilder,
-    onReorder,
-    onTap,
-    key,
+    int crossAxisCount = 3,
+    double axisSpacing = 4.0,
+    required Widget? Function(int) itembuilder,
+    required int itemcount,
+    required dynamic Function(int) keybuilder,
+    HusenColor? Function(int)? colorsbuilder,
+    required void Function(List<dynamic> keys) onReorder,
+    required void Function(int index) onTap,
+    Key key = const Key(''),
   }) : this._init(
     crossAxisCount: crossAxisCount,
     axisSpacing: axisSpacing,
@@ -46,7 +59,7 @@ class ReorderableHusenView extends StatefulWidget {
     }),
     colors: List.generate(itemcount, (index){
       if(colorsbuilder == null){
-        Color color = Colors.blue[200];
+        final color = Colors.blue[200]!;
         return HusenColor(color: color,backSideColor: Color.fromARGB(255, color.red-50, color.green-50, color.blue-50));
       }
       return colorsbuilder(index);
@@ -56,17 +69,6 @@ class ReorderableHusenView extends StatefulWidget {
     key: key,
   );
 
-  ReorderableHusenView._init({
-    this.crossAxisCount = 3,
-    this.axisSpacing = 4.0,
-    @required this.children,
-    @required this.keys,
-    this.colors,
-    this.onReorder,
-    this.onTap,
-    Key key,
-  }) : super(key: key);
-
   @override
   ReorderableHusenViewState createState() => ReorderableHusenViewState();
 }
@@ -74,10 +76,10 @@ class ReorderableHusenView extends StatefulWidget {
 class ReorderableHusenViewState extends State<ReorderableHusenView> {
   final AsyncMemoizer memoizer = AsyncMemoizer();
   /// グリッドビューの高さ
-  double wigetHeight;
-  int imgCount;
+  late double wigetHeight;
+  late int imgCount;
   /// グリッドアイテムの大きさ
-  double gredSize;
+  late double gredSize;
   /// アイテムのPosition
   List<Offset> fixedPosition = [];
   /// 付箋ウィジェットの制御
@@ -87,8 +89,8 @@ class ReorderableHusenViewState extends State<ReorderableHusenView> {
   Offset startPosition = Offset(0.0, 0.0);
   double top = 0;
   double left = 0;
-  Widget previewItem;
-  HusenColor previewColor;
+  Widget? previewItem;
+  HusenColor? previewColor;
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +151,7 @@ class ReorderableHusenViewState extends State<ReorderableHusenView> {
                           top = fixedPosition[index].dy + details.localPosition.dy - startPosition.dy;
                           left = fixedPosition[index].dx + details.localPosition.dx - startPosition.dx;
                           /** プレビュー用アイテムに移動するアイテムを入れて */
-                          previewItem = widget.children[index];
+                          previewItem = widget.children[index]!;
                           previewColor = widget.colors[index];
                           /** 元の場所は見えないようにする */
                           widget.children[index] = null;
@@ -179,12 +181,12 @@ class ReorderableHusenViewState extends State<ReorderableHusenView> {
                         setState(() {
                           /** アイテム配列サイズを超えるなら拡張 */
                           if (moved >= widget.children.length) {
-                            for (int i = widget.children.length; i <= moved; i++) {
-                              widget.children = listAddAt(widget.children, i, null);
-                              widget.colors = listAddAt(widget.colors, i, null);
+                            for (var i = widget.children.length; i <= moved; i++) {
+                              widget.children = listAddAt(widget.children, i, null) as List<Widget?>;
+                              widget.colors = listAddAt(widget.colors, i, null) as List<HusenColor>;
                               widget.keys = listAddAt(widget.keys, i, null);
-                              fixedPosition = listAddAt(fixedPosition, i, Offset((i % widget.crossAxisCount * gredSize) + i % widget.crossAxisCount * widget.axisSpacing, (i ~/ widget.crossAxisCount * gredSize) + i ~/ widget.crossAxisCount * widget.axisSpacing));
-                              mekuriflgs = listAddAt(mekuriflgs, i, false);
+                              fixedPosition = listAddAt(fixedPosition, i, Offset((i % widget.crossAxisCount * gredSize) + i % widget.crossAxisCount * widget.axisSpacing, (i ~/ widget.crossAxisCount * gredSize) + i ~/ widget.crossAxisCount * widget.axisSpacing)) as List<Offset>;
+                              mekuriflgs = listAddAt(mekuriflgs, i, false) as List<bool>;
                             }
                           }
                           /** 入れ替え先の付箋をめくる */
@@ -195,11 +197,11 @@ class ReorderableHusenViewState extends State<ReorderableHusenView> {
                           widget.colors[index] = widget.colors[moved];
                           widget.keys[index] = widget.keys[moved];
                           widget.children[moved] = previewItem;
-                          widget.colors[moved] = previewColor;
+                          widget.colors[moved] = previewColor!;
                           widget.keys[moved] = cData;
                           /** 末尾の空白を消す */
-                          widget.children = endNullDelete(widget.children);
-                          widget.colors = endNullDelete(widget.colors);
+                          widget.children = endNullDelete(widget.children) as List<Widget?>;
+                          widget.colors = endNullDelete(widget.colors) as List<HusenColor>;
                           widget.keys = endNullDelete(widget.keys);
                           /** プレビュー用アイテムを画面外に飛ばす */
                           previewItem = null;
@@ -222,7 +224,7 @@ class ReorderableHusenViewState extends State<ReorderableHusenView> {
                     child: Container(
                       width: gredSize, height: gredSize, 
                       color: Colors.transparent,
-                      child: husenOrNull(widget.children[index], mekuriflgs[index], widget.colors[index])
+                      child: husenOrNull(widget.children[index], mekuriflgs[index], widget.colors[index]!)
                     ),
                   )
                 );
@@ -233,15 +235,15 @@ class ReorderableHusenViewState extends State<ReorderableHusenView> {
                 left: left,
                 child: Container(
                   decoration: BoxDecoration(
-                    boxShadow: previewItem == null ? null : [BoxShadow(
+                    boxShadow: previewItem == null ? null : [const BoxShadow(
                       color: Colors.black12, 
                       blurRadius: 10.0, 
                       spreadRadius: 1.0, 
                       offset: Offset(5, 5))
-                    ]), 
+                    ],), 
                   child: HusenContainer(
-                    color: previewColor == null ? null : previewColor.color,
-                    backSideColor: previewColor == null ? null : previewColor.backSideColor,
+                    color: previewColor == null ? null : previewColor!.color,
+                    backSideColor: previewColor == null ? null : previewColor!.backSideColor,
                     mekuriFlg: true,
                     child: Container(width: gredSize, height: gredSize, child: previewItem),
                   )
@@ -253,7 +255,7 @@ class ReorderableHusenViewState extends State<ReorderableHusenView> {
     });
   }
 
-  dynamic husenOrNull(Widget item, bool mekuriflgs, HusenColor color){
+  Widget? husenOrNull(Widget? item, bool mekuriflgs, HusenColor color){
     if(item == null){
       return null;
     }else{

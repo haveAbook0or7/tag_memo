@@ -2,62 +2,62 @@ import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_memo/customWidget/husenContainer.dart';
+import 'package:tag_memo/data/memo.dart';
 
 import 'customWidget/deleteDialog.dart';
 import 'data/sqlite.dart';
 import 'theme/color.dart';
 import 'theme/theme_color.dart';
 
+
 class EditingMemo extends StatefulWidget {
   final int memoId;
   final String title;
-  EditingMemo({
+  const EditingMemo({
     this.memoId = 0,
-    this.title = "編集画面",
-    Key key,
+    this.title = '編集画面',
+    Key key = const Key(''),
   }) : super(key: key);
   @override
   EditingMemoState createState() => EditingMemoState();
 }
 
 class EditingMemoState extends State<EditingMemo> {
-  double deviceHeight;
-  double deviceWidth;
-  /** リロード時のぐるぐる */
-  Widget cpi;
-  /** 初期化を一回だけするためのライブラリ */
+  late double deviceHeight;
+  late double deviceWidth;
+  /* リロード時のぐるぐる */
+  late Widget? cpi;
+  /* 初期化を一回だけするためのライブラリ */
   final AsyncMemoizer memoizer = AsyncMemoizer();
-  /** テーマカラー */
+  /* テーマカラー */
   MaterialColor themeColor = MyColor.rose;
   Map<int, int> colorIndex = {0:50, 1:100, 2:200, 3:300, 4:400, 5:500, 6:600, 7:700, 8:800, 9:900};
   bool colorFlg = false;
-  /** メモプレビューリスト */
-  Memo _memo = Memo(memoId: -1, memo: "", backColor: 50);
-  /** テキストコントローラ */
+  /* メモプレビューリスト */
+  Memo _memo = Memo(orderId: -1, memoId: -1, memo: '', backColor: 50);
+  /* テキストコントローラ */
   TextEditingController controller = TextEditingController();
-  /** フォントスタイル */
-  Map<String,Color> fontColors = {"ブラック": Colors.black, "ダークグレイ": Colors.black45, "ホワイト": Colors.white};
+  /* フォントスタイル */
+  Map<String,Color> fontColors = {'ブラック': Colors.black, 'ダークグレイ': Colors.black45, 'ホワイト': Colors.white};
   double fontSize = 16;
   Color fontColor = Colors.black;
 
-  /** ローディング処理 */
+  /* ローディング処理 */
   Future<void> loading() async {
     /** 更新終わるまでグルグルを出しとく */
     setState(() => cpi = CircularProgressIndicator());
     /** テーマカラーを取得 */
-    themeColor = await ThemeColor.getBasicAndThemeColor();
+    themeColor = await ThemeColor().getBasicAndThemeColor();
     /** メモ取得 */
-    if(widget.memoId == 0){
-      _memo = Memo(memoId: widget.memoId, memo: "", backColor: 50);
-    }else{
-      _memo = await SQLite.getMemo(widget.memoId);
+    if(widget.memoId != 0){
+      _memo = await getMemo(widget.memoId);
     }
     /** メモデータ */
     controller = TextEditingController(text: _memo.memo);
     /** フォント */
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    fontSize = (prefs.getDouble("fontSize") ?? 16.0);
-    fontColor = fontColors[(prefs.getString("fontColor") ?? "ブラック")];
+    final prefs = await SharedPreferences.getInstance();
+    fontSize = prefs.getDouble('fontSize') ?? 16.0;
+    fontColor = fontColors[(prefs.getString('fontColor') ?? 'ブラック')]!;
     /** グルグル終わり */
     setState(() => cpi = null);
   }
@@ -76,7 +76,7 @@ class EditingMemoState extends State<EditingMemo> {
         actions: [
           widget.memoId == 0 ? Container() :
           IconButton(
-            icon: Icon(Icons.delete), 
+            icon: const Icon(Icons.delete), 
             onPressed: () async {
               /** ダイアログ表示 */
               await showDialog<String>(
@@ -84,9 +84,9 @@ class EditingMemoState extends State<EditingMemo> {
                 barrierDismissible: false,
                 builder: (BuildContext context) {
                   return DeleteDialog(memoId: _memo.memoId,);
-                }
+                },
               ).then((value) async {
-                if(value != "cancel"){
+                if(value != 'cancel'){
                   Navigator.pop(context,);
                 }
               });
@@ -103,18 +103,18 @@ class EditingMemoState extends State<EditingMemo> {
             Container(
               height: deviceHeight,
               color: themeColor[_memo.backColor],
-              padding: EdgeInsets.only(bottom: 48),
-              child: new SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 48),
+              child: SingleChildScrollView(
                 child: SizedBox(
                   height: deviceHeight-48,
                   child: TextField(
                     controller: controller,
                     style: TextStyle(fontSize: fontSize, color: fontColor),
                     maxLines: 500,
-                    decoration: new InputDecoration(
+                    decoration: const InputDecoration(
                       border: InputBorder.none,
                       hintText: 'メモを書く',
-                      hintStyle: TextStyle(color: Colors.black26)
+                      hintStyle: TextStyle(color: Colors.black26),
                     ),
                     keyboardType: TextInputType.multiline,
                   ),
@@ -137,14 +137,14 @@ class EditingMemoState extends State<EditingMemo> {
                     floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
                     /** 保存ボタン */
                     floatingActionButton: FloatingActionButton(
-                      child: Icon(Icons.check),
-                      backgroundColor: Theme.of(context).accentColor,
+                      child: const Icon(Icons.check),
+                      backgroundColor: Theme.of(context).primaryColor,// TODO accent
                       onPressed: () async {
-                        _memo.memo = controller.text == null ? "" : controller.text;
+                        _memo.memo = controller.text;
                         if(_memo.memoId == 0){
-                          await SQLite.insertMemo(_memo);
+                          await insertMemo(_memo);
                         }else{
-                          await SQLite.updateMemo(_memo);
+                          await updateMemo(_memo);
                         }
                         Navigator.pop(context,);
                       },
@@ -152,7 +152,7 @@ class EditingMemoState extends State<EditingMemo> {
                     bottomNavigationBar: BottomAppBar(
                       color: Theme.of(context).primaryColor,
                       notchMargin: 5.0,
-                      shape: AutomaticNotchedShape(
+                      shape: const AutomaticNotchedShape(
                         RoundedRectangleBorder(),
                         StadiumBorder(
                           side: BorderSide(),
@@ -185,10 +185,10 @@ class EditingMemoState extends State<EditingMemo> {
                 child: Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: List.generate(5, (index){
-                      Color color = themeColor[colorIndex[index]];
-                      HSVColor backSide = HSVColor.fromColor(color);
+                      final color = themeColor[colorIndex[index]!];
+                      final backSide = HSVColor.fromColor(color!);
                       return GestureDetector(
-                        onTap: () => setState(() => _memo.backColor = colorIndex[index]),
+                        onTap: () => setState(() => _memo.backColor = colorIndex[index]!),
                         child: HusenContainer(
                           height: 40,width: 40, 
                           color: color,
@@ -199,10 +199,10 @@ class EditingMemoState extends State<EditingMemo> {
                   ),
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: List.generate(5, (index){
-                      Color color = themeColor[colorIndex[index+5]];
-                      HSVColor backSide = HSVColor.fromColor(color);
+                      final color = themeColor[colorIndex[index+5]!];
+                      final backSide = HSVColor.fromColor(color!);
                       return GestureDetector(
-                        onTap: () => setState(() => _memo.backColor = colorIndex[index+5]),
+                        onTap: () => setState(() => _memo.backColor = colorIndex[index+5]!),
                         child: HusenContainer(
                           height: 40,width: 40, 
                           color: color,
@@ -217,12 +217,12 @@ class EditingMemoState extends State<EditingMemo> {
             /** ロード */
             Container(
               alignment: Alignment.topCenter,
-              padding: EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.only(top: 10),
               child: Container(
                 alignment: Alignment.topCenter,
                 width: 25, height: 25,
                 child: cpi,
-              )
+              ),
             )
           ],);
       }),

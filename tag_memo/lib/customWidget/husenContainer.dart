@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class HusenColor {
-  Color color;
-  Color backSideColor;
 
   HusenColor({this.color, this.backSideColor,});
+  Color? color;
+  Color? backSideColor;
 
   Map<String, dynamic> toMap() {
     return {
@@ -20,12 +20,6 @@ class HusenColor {
 
 
 class HusenContainer extends StatelessWidget {
-  bool mekuriFlg;
-  double height;
-  double width;
-  Widget child;
-  Color color;
-  Color backSideColor;
   HusenContainer({ 
     this.mekuriFlg,
     this.height,
@@ -34,40 +28,46 @@ class HusenContainer extends StatelessWidget {
     this.color,
     this.backSideColor,
   });
+  bool? mekuriFlg;
+  double? height;
+  double? width;
+  Widget? child;
+  Color? color;
+  Color? backSideColor;
   @override
   Widget build(BuildContext context) {
-    mekuriFlg = mekuriFlg == null ? true : mekuriFlg;
-    if(height == null){ height = 300;}
-    if(width == null){ width = 300;}
-    if(color == null){ color = Colors.greenAccent;}
-    if(backSideColor == null){ backSideColor = Colors.green;}
+    mekuriFlg = mekuriFlg ?? true;
+    height ??= 300;
+    width ??= 300;
+    color ??= Colors.greenAccent;
+    backSideColor ??= Colors.green;
 
     return CustomPaint(
-      child: this.child,
-      size: Size(width, height),
+      size: Size(width!, height!),
       painter: HusenPainter(
-        mekuriFlg: this.mekuriFlg,
-        color: this.color,
-        backSideColor: this.backSideColor,
+        mekuriFlg: mekuriFlg!,
+        color: color!,
+        backSideColor: backSideColor!,
       ),
+      child: child,
     );
   }
 }
 
 class HusenPainter extends CustomPainter {
-  bool mekuriFlg;
-  Color color;
-  Color backSideColor;
   HusenPainter({ 
     this.mekuriFlg,
     this.color,
     this.backSideColor,
   });
+  bool? mekuriFlg;
+  Color? color;
+  Color? backSideColor;
 
   @override
   void paint(Canvas canvas, Size size) {
-    Paint paint = Paint();
-    paint.color = color;
+    var paint = Paint();
+    paint.color = color!;
     var path = Path();
 
     path.lineTo(size.width, 0);
@@ -77,10 +77,10 @@ class HusenPainter extends CustomPainter {
     path.lineTo(0, 0);
     canvas.drawPath(path, paint);
 
-    if(mekuriFlg){
-      paint = new Paint();
-      paint.color = backSideColor;
-      path = new Path();
+    if(mekuriFlg!){
+      paint = Paint();
+      paint.color = backSideColor!;
+      path = Path();
 
       path.moveTo(size.width / 6 * 5, size.height / 6 * 5);
       path.lineTo(size.width, size.height / 6 * 5);
@@ -88,9 +88,9 @@ class HusenPainter extends CustomPainter {
       path.lineTo(size.width / 6 * 5, size.height / 6 * 5);
       canvas.drawPath(path, paint);
     }else{
-      paint = new Paint();
-      paint.color = color;
-      path = new Path();
+      paint = Paint();
+      paint.color = color!;
+      path = Path();
 
       path.moveTo(size.width, size.height);
       path.lineTo(size.width, size.height / 6 * 5);

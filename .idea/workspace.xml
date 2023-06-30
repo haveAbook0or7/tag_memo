@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="a11b7a41-7b42-401b-8b12-4c6f94cbbaf8" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/tag_memo/android/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/android/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/customWidget/customText.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/customWidget/customText.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/customWidget/customTile.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/customWidget/customTile.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/customWidget/deleteDialog.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/customWidget/deleteDialog.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/customWidget/dropdownTile.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/customWidget/dropdownTile.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/customWidget/husenContainer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/customWidget/husenContainer.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/customWidget/reorderableHusenView.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/customWidget/reorderableHusenView.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/data/sqlite.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/data/sqlite.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/editingMemo.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/editingMemo.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/setFont.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/setFont.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/setTheme.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/setTheme.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/theme/app_theme.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/theme/app_theme.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/theme/color.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/theme/color.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/theme/dynamic_theme.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/theme/dynamic_theme.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/theme/theme_color.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/theme/theme_color.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/lib/theme/theme_type.dart" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/lib/theme/theme_type.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tag_memo/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/tag_memo/pubspec.yaml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="2RnU3I0XH613fBxKsn0dWUBMkRE" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="dart.analysis.tool.window.visible" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.project.gradle" />
+    <property name="show.migrate.to.gradle.popup" value="false" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a11b7a41-7b42-401b-8b12-4c6f94cbbaf8" name="Default Changelist" comment="" />
+      <created>1687885137494</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1687885137494</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="221" y="86" key="SettingsEditor" timestamp="1687885163138">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="221" y="86" key="SettingsEditor/1440.25.1920.1055/0.0.1440.900@0.0.1440.900" timestamp="1687885163138" />
+  </component>
+</project>

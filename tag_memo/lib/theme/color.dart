@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'theme_type.dart';
 
 class MyColor{
-  static List<String> themeName = ["ローズ", "スカイ", "パステル"];
+  static List<String> themeName = ['ローズ', 'スカイ', 'パステル'];
   static Map<int,MaterialColor> themeColor = {0: rose, 1: sky, 2: pastel};
 
   static const int _rosePrimaryValue = 0xffe95464;
@@ -38,7 +39,7 @@ class MyColor{
   );
   static const int _pastelPrimaryValue = 0xff6c9bd2;
   static const MaterialColor pastel = MaterialColor(
-    _skyPrimaryValue,
+    _pastelPrimaryValue,
     <int, Color>{
       50 : Color(0xffffffff),
       100 : Color(0xffbcc7d7),
@@ -52,4 +53,18 @@ class MyColor{
       900 : Color(0xfff6bfbc),
     },
   );
+
+
+  static Map<String, MaterialColor> toMap() {
+    return {
+      ThemeType.ROSE: rose,
+      ThemeType.SKY: sky,
+      ThemeType.PASTEL: pastel,
+    };
+  }
+
+  @override
+  String toString() {
+    return toMap() as String;
+  }
 }

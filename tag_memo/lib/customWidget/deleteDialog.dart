@@ -5,7 +5,7 @@ class DeleteDialog extends StatefulWidget {
   final int memoId;
   DeleteDialog({
     this.memoId = 0,
-    Key key,
+    Key key = const Key(''),
   }) : super(key: key);
   @override
   _DeleteDialogState createState() => _DeleteDialogState();
@@ -47,24 +47,24 @@ class _DeleteDialogState extends State<DeleteDialog> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           // ボタン領域
-                          FlatButton(
-                            minWidth: 110,
-                            color: Theme.of(context).primaryColor,
-                            shape: BeveledRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Text("キャンセル", style: TextStyle(color: Colors.white)),
-                            onPressed: () => Navigator.pop(context, "cancel"),
+                          TextButton(
+                            // minWidth: 110,
+                            // color: Theme.of(context).primaryColor,
+                            // shape: BeveledRectangleBorder(
+                            //   borderRadius: BorderRadius.circular(5),
+                            // ),
+                            child: const Text('キャンセル', style: TextStyle(color: Colors.white)),
+                            onPressed: () => Navigator.pop(context, 'cancel'),
                           ),
-                          FlatButton(
-                            minWidth: 110,
-                            color: Theme.of(context).accentColor,
-                            shape: BeveledRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Text("削除", style: TextStyle(color: Colors.white)),
+                          TextButton(
+                            // minWidth: 110,
+                            // color: Theme.of(context).accentColor,
+                            // shape: BeveledRectangleBorder(
+                            //   borderRadius: BorderRadius.circular(5),
+                            // ),
+                            child: const Text('削除', style: TextStyle(color: Colors.white)),
                             onPressed: () async {
-                              await SQLite.deleteMemo(widget.memoId);
+                              await deleteMemo(widget.memoId);
                               Navigator.of(context).pop();
                             },
                           ),

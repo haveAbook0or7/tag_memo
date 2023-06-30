@@ -1,17 +1,21 @@
 class ThemeType {
-  const ThemeType(this._value);
-  final String _value;
-  String get value => _value;
+  // const ThemeType(this._value);
+  // final String _value;
+  // String get value => _value;
 
-  static const String _ROSE_VALUE = 'ROSE';
-  static const String _SKY_VALUE = 'SKY';
-  static const String _PASTEL_VALUE = 'PASTEL';
+  // ignore: constant_identifier_names
+  static const String ROSE = 'ROSE';
+  // ignore: constant_identifier_names
+  static const String SKY = 'SKY';
+  // ignore: constant_identifier_names
+  static const String PASTEL = 'PASTEL';
 
-  static const ThemeType ROSE = ThemeType(_ROSE_VALUE);
-  static const ThemeType SKY = ThemeType(_SKY_VALUE);
-  static const ThemeType PASTEL = ThemeType(_PASTEL_VALUE);
+  // static const ThemeType rose = ThemeType(_roseValue);
+  // static const ThemeType sky = ThemeType(_skyValue);
+  // static const ThemeType pastel = ThemeType(_pastelValue);
 
-  static List<ThemeType> values() {
+  List<String> values() {
+    // 
     return [
       ThemeType.ROSE,
       ThemeType.SKY,
@@ -20,11 +24,15 @@ class ThemeType {
   }
 
 
-  static ThemeType of(String theme) {
-    return ThemeType.values().firstWhere((e) => e.toString() == theme,orElse: ()=> null);
-  }
+  // static ThemeType of(String theme) {
+  //   return ThemeType.values().firstWhere(
+  //     (e) => e.toString() == theme,
+  //     // orElse: () => null
+  //   );
+  // }
 
-  String toString() {
-    return this.value;
-  }
+  // @override
+  // String toString() {
+  //   return value;
+  // }
 }

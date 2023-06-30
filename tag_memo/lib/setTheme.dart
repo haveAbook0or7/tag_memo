@@ -13,7 +13,7 @@ class _SetThemeState extends State<SetTheme> {
   @override
   Widget build(BuildContext context) {
       return Scaffold(
-        appBar: AppBar(title: Text('テーマカラー設定'),),
+        appBar: AppBar(title: const Text('テーマカラー設定'),),
         /******************************************************* AppBar*/
         body: LayoutBuilder(
           builder: (context, constraints) {
@@ -23,17 +23,17 @@ class _SetThemeState extends State<SetTheme> {
                 return CustomTile(
                   title: Text(
                     MyColor.themeName[index],
-                    style: TextStyle(fontSize: 16,),
+                    style: const TextStyle(fontSize: 16,),
                   ),
                   trailing: Row(children: <Widget>[
-                    Icon(Icons.stop_circle,color: MyColor.themeColor[index][100],),
-                    Icon(Icons.stop_circle,color: MyColor.themeColor[index][200],),
-                    Icon(Icons.stop_circle,color: MyColor.themeColor[index][300],),
-                  ]),
-                  onTap: () async{
-                    ThemeType themeType = ThemeType.values()[index];
-                    String value = themeType.toString();
-                    DynamicTheme.of(context).setTheme(ThemeType.of(value));
+                    Icon(Icons.stop_circle,color: MyColor.themeColor[index]![100],),
+                    Icon(Icons.stop_circle,color: MyColor.themeColor[index]![200],),
+                    Icon(Icons.stop_circle,color: MyColor.themeColor[index]![300],),
+                  ],),
+                  onTap: () async {
+                    final themeName = ThemeType().values()[index];
+                    await DynamicTheme.of(context)?.setTheme(themeName);
+                    // ignore: use_build_context_synchronously
                     Navigator.pop(context);
                   },
                 );

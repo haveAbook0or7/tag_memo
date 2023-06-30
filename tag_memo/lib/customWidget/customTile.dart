@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 
 
 class CustomTile extends StatelessWidget {
-  Widget title;
-  Widget trailing;
+  Widget? title;
+  Widget? trailing;
   final double height;
   final Color tileColor;
-  Function() onTap;
-  Function() onLongPress;
+  Function? onTap;
+  Function? onLongPress;
   
   CustomTile({
     this.title,
-    this.trailing,
+    required this.trailing,
     this.height = 56.0,
     this.tileColor = Colors.white,
     this.onTap,
@@ -20,31 +20,31 @@ class CustomTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    this.title = this.title == null ? Container() : this.title;
-    this.trailing = this.trailing == null ? Container() : this.trailing;
-    this.onTap = this.onTap == null ? (){} : this.onTap;
-    this.onLongPress = this.onLongPress == null ? (){} : this.onLongPress;
+    title = title ?? Container();
+    trailing = trailing ?? Container();
+    onTap = onTap ?? (){};
+    onLongPress = onLongPress ?? (){};
 
       return LayoutBuilder(builder: (context, constraints) {
         return GestureDetector(
           child: Container(
-            padding: EdgeInsets.only(left: 15,right: 15,),
-            height: this.height,
-            color: this.tileColor,
+            padding: const EdgeInsets.only(left: 15,right: 15,),
+            height: height,
+            color: tileColor,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                this.title,
-                this.trailing
+                title!,
+                trailing!
               ],
             ),
           ),
           onTap: (){
-            this.onTap();
+            onTap!();
           },
           onLongPress: (){
-            this.onLongPress();
+            onLongPress!();
           },
         );
       });
