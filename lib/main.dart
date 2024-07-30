@@ -65,9 +65,9 @@ class _TagMemoState extends State<TagMemo> {
   /* メモプレビューリスト */
   List<Memo?> _previewList = [];
 
-  List<Widget?> leadingIcon = [null, const Icon(Icons.format_color_fill), const Icon(Icons.text_fields)];
-  List<String?> titleText = [null, 'テーマカラー', 'フォント'];
-  List<Widget?> onTap = [null, SetTheme(), SetFont()];
+  List<Widget?> drawerLeadingIcon = [null, const Icon(Icons.format_color_fill), const Icon(Icons.text_fields)];
+  List<String?> drawerTitleText = [null, 'テーマカラー', 'フォント'];
+  List<Widget?> drawerOnTap = [null, SetTheme(), SetFont()];
 
   Map<String,Color> fontColors = {'ブラック': Colors.black, 'ダークグレイ': Colors.black45, 'ホワイト': Colors.white};
   double fsize = 16;
@@ -81,7 +81,7 @@ class _TagMemoState extends State<TagMemo> {
     themeColor = await ThemeColor().getBasicAndThemeColor();
     /** プレビューリスト取得 */
     _previewList = await getMemoPreview();
-
+    /** フォントスタイルを取得 */
     final prefs = await SharedPreferences.getInstance();
     fsize = prefs.getDouble(SharedPreferencesKeys.fontSize) ?? 16.0;
     fcolor = fontColors[(prefs.getString(SharedPreferencesKeys.fontColor) ?? 'ブラック')]!;
@@ -100,22 +100,23 @@ class _TagMemoState extends State<TagMemo> {
     /** 画面 */
     return Scaffold(
       appBar: AppBar(title: Text(widget.title),),
+      /** サイドメニュー ********************************************************/
       drawer: Drawer(
         child: ListView.builder(
-        itemCount: leadingIcon.length,
+        itemCount: drawerLeadingIcon.length,
         itemBuilder: (context, index) {
           if(index == 0){ /// 先頭はヘッダー
             return DrawerHeader(decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary,), child: null,);
           }
           return ListTile(
-            leading:leadingIcon[index], // 左のアイコン
-            title: Text(titleText[index]!), // テキスト
+            leading:drawerLeadingIcon[index], // 左のアイコン
+            title: Text(drawerTitleText[index]!), // テキスト
             trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
             onTap: (){
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) {
                   // 設定へ
-                  return onTap[index]!;
+                  return drawerOnTap[index]!;
                 },),
               ).then((value) async {
                 await loading();
@@ -124,6 +125,7 @@ class _TagMemoState extends State<TagMemo> {
           );
         },),
       ),
+      /** メイン場面 ********************************************************/
       body: LayoutBuilder(builder: (context, constraints) {
         deviceHeight = constraints.maxHeight;
         deviceWidth = constraints.maxWidth;
@@ -181,7 +183,9 @@ class _TagMemoState extends State<TagMemo> {
                 await loading();
               },
               onTap: (int index){
-                if(_previewList[index] == null){ return;}
+                // アイテムが空の場合、今後の処理をキャンセル
+                if(_previewList[index] == null){ return; }
+                /** メモ編集画面へ遷移 */
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) {
                     // メモ編集画面へ

@@ -215,8 +215,8 @@ Future<List<Memo?>> getGarbageMemoPreview({String orderby='desc'}) async {
   return previewList;
 }
 
-/* 論理削除されているメモデータを復活 */
-Future<void> revivalMemo(String memoId) async {
+/* 論理削除されているメモデータを復元 */
+Future<void> repairMemo(String memoId) async {
   final db = await database;
 
   /** orderIdを取得 */

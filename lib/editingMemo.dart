@@ -78,7 +78,7 @@ class EditingMemoState extends State<EditingMemo> {
           IconButton( // 削除ボタン
             icon: const Icon(Icons.delete), 
             onPressed: () async {
-              /** ダイアログ表示 */
+              /** 削除確認ダイアログ表示 */
               await showDialog<String>(
                 context: context,
                 barrierDismissible: false,
