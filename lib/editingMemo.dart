@@ -2,22 +2,21 @@ import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_memo/customWidget/husenContainer.dart';
-import 'package:tag_memo/data/memo.dart';
+import 'package:tag_memo/data/sqlite/memo.dart';
 
 import 'customWidget/deleteDialog.dart';
-import 'data/sqlite.dart';
-import 'theme/color.dart';
-import 'theme/theme_color.dart';
+import 'data/other/husen_color_palette.dart';
+import 'data/sqlite/sqlite.dart';
+import 'theme/custom_material_color.dart';
 
 
 class EditingMemo extends StatefulWidget {
-  final int memoId;
-  final String title;
   const EditingMemo({
-    this.memoId = 0,
-    this.title = '編集画面',
+    this.memoId = '',
     Key key = const Key(''),
   }) : super(key: key);
+  final String memoId;
+
   @override
   EditingMemoState createState() => EditingMemoState();
 }
@@ -30,11 +29,11 @@ class EditingMemoState extends State<EditingMemo> {
   /* 初期化を一回だけするためのライブラリ */
   final AsyncMemoizer memoizer = AsyncMemoizer();
   /* テーマカラー */
-  MaterialColor themeColor = MyColor.rose;
+  MaterialColor themeColor = CustomMaterialColor.rose;
   Map<int, int> colorIndex = {0:50, 1:100, 2:200, 3:300, 4:400, 5:500, 6:600, 7:700, 8:800, 9:900};
   bool colorFlg = false;
   /* メモプレビューリスト */
-  Memo _memo = Memo(orderId: -1, memoId: -1, memo: '', backColor: 50);
+  Memo _memo = Memo(orderId: -1, memoId: '', memo: '', backColor: 50);
   /* テキストコントローラ */
   TextEditingController controller = TextEditingController();
   /* フォントスタイル */
@@ -49,7 +48,8 @@ class EditingMemoState extends State<EditingMemo> {
     /** テーマカラーを取得 */
     themeColor = await ThemeColor().getBasicAndThemeColor();
     /** メモ取得 */
-    if(widget.memoId != 0){
+    _memo.memoId = widget.memoId;
+    if(_memo.memoId != ''){
       _memo = await getMemo(widget.memoId);
     }
     /** メモデータ */
@@ -72,10 +72,10 @@ class EditingMemoState extends State<EditingMemo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(_memo.memoId == '' ? '新規作成' : '編集'),
         actions: [
-          widget.memoId == 0 ? Container() :
-          IconButton(
+          _memo.memoId == ''  ? Container() :
+          IconButton( // 削除ボタン
             icon: const Icon(Icons.delete), 
             onPressed: () async {
               /** ダイアログ表示 */
@@ -83,7 +83,7 @@ class EditingMemoState extends State<EditingMemo> {
                 context: context,
                 barrierDismissible: false,
                 builder: (BuildContext context) {
-                  return DeleteDialog(memoId: _memo.memoId,);
+                  return DeleteDialog(orderId: _memo.orderId,);
                 },
               ).then((value) async {
                 if(value != 'cancel'){
@@ -138,19 +138,18 @@ class EditingMemoState extends State<EditingMemo> {
                     /** 保存ボタン */
                     floatingActionButton: FloatingActionButton(
                       child: const Icon(Icons.check),
-                      backgroundColor: Theme.of(context).primaryColor,// TODO accent
                       onPressed: () async {
                         _memo.memo = controller.text;
-                        if(_memo.memoId == 0){
+                        if(_memo.memoId == ''){ // 新規登録
                           await insertMemo(_memo);
-                        }else{
+                        }else{                  // 編集
                           await updateMemo(_memo);
                         }
                         Navigator.pop(context,);
                       },
                     ),
                     bottomNavigationBar: BottomAppBar(
-                      color: Theme.of(context).primaryColor,
+                      color: Theme.of(context).colorScheme.primary,
                       notchMargin: 5.0,
                       shape: const AutomaticNotchedShape(
                         RoundedRectangleBorder(),
@@ -159,18 +158,18 @@ class EditingMemoState extends State<EditingMemo> {
                         ),
                       ),
                       child: Row(children: [
-                        /** 付箋の色選択ON/OFF */
+                        /** 付箋の色選択ダイアログON/OFF */
                         IconButton(
-                          icon: Icon(Icons.format_color_fill, color: Theme.of(context).selectedRowColor,),
-                          onPressed: () => setState(() => colorFlg = colorFlg ? false : true)
+                          icon: Icon(Icons.format_color_fill, color: Theme.of(context).colorScheme.tertiary,),
+                          onPressed: () => setState(() => colorFlg = !colorFlg),
                         ),
-                      ]),
+                      ],),
                     ),
                   ),
-                )
-              )
+                ),
+              ),
             ),
-            /** 付箋の色選択 */
+            /** 付箋の色選択ダイアログ */
             colorFlg ? Positioned(
               left: 5,
               bottom: 53,
@@ -178,10 +177,10 @@ class EditingMemoState extends State<EditingMemo> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: Colors.grey.withAlpha(153),
-                  border: Border.all(width: 1.5,color: Theme.of(context).selectedRowColor)
+                  border: Border.all(width: 1.5,color: Theme.of(context).colorScheme.secondary),
                 ),
                 height: 112, width: 290,
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: List.generate(5, (index){
@@ -190,12 +189,12 @@ class EditingMemoState extends State<EditingMemo> {
                       return GestureDetector(
                         onTap: () => setState(() => _memo.backColor = colorIndex[index]!),
                         child: HusenContainer(
+                          mekuriFlg: true,
                           height: 40,width: 40, 
-                          color: color,
-                          backSideColor: backSide.withValue(backSide.value-0.15).toColor(),
+                          husencolor: HusenColor(color: color, backSideColor: backSide.withValue(backSide.value-0.15).toColor(),),
                         ),
                       );
-                    })
+                    }),
                   ),
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: List.generate(5, (index){
@@ -204,15 +203,15 @@ class EditingMemoState extends State<EditingMemo> {
                       return GestureDetector(
                         onTap: () => setState(() => _memo.backColor = colorIndex[index+5]!),
                         child: HusenContainer(
+                          mekuriFlg: true,
                           height: 40,width: 40, 
-                          color: color,
-                          backSideColor: backSide.withValue(backSide.value-0.15).toColor(),
+                          husencolor: HusenColor(color: color, backSideColor: backSide.withValue(backSide.value-0.15).toColor()),
                         ),
                       );
                     })
                   ),
                 ],),
-              )
+              ),
             ) : Container(),
             /** ロード */
             Container(

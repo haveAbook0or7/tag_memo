@@ -1,43 +1,53 @@
 import 'package:flutter/material.dart';
-import 'color.dart';
+
+import 'custom_material_color.dart';
 import 'theme_type.dart';
 
 
 class AppTheme {
+  /*
+   * アプリのThemeDataの定義。
+   */
+  static final _themeDataRose = ThemeData(
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: CustomMaterialColor.rose,
+      primary: CustomMaterialColor.rose[100],
+      secondary: CustomMaterialColor.rose[200],
+      tertiary: CustomMaterialColor.rose[300],
+    ),
+    brightness: Brightness.light,
+    
+  );
+  static ThemeData get themeDataRose => _themeDataRose;
 
-  static final _themeRose = ThemeData(
-    primaryColor: MyColor.rose[100],
-    // accentColor: MyColor.rose[200],
-    // selectedRowColor: MyColor.rose[300],
-    primarySwatch: MyColor.rose,
+  static final _themeDataSky = ThemeData(
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: CustomMaterialColor.sky,
+      primary: CustomMaterialColor.sky[100],
+      secondary: CustomMaterialColor.sky[200],
+      tertiary: CustomMaterialColor.sky[300],
+    ),
     brightness: Brightness.light,
   );
-  static ThemeData get themeRose => _themeRose;
+  static ThemeData get themeDataSky => _themeDataSky;
 
-  static final _themeSky = ThemeData(
-    primaryColor: MyColor.sky[100],
-    // accentColor: MyColor.sky[200],
-    // selectedRowColor: MyColor.sky[300],
-    primarySwatch: MyColor.sky,
+  static final _themeDataPastel = ThemeData(
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: CustomMaterialColor.pastel,
+      primary: CustomMaterialColor.pastel[100],
+      secondary: CustomMaterialColor.pastel[200],
+      tertiary: CustomMaterialColor.pastel[300],
+    ),
     brightness: Brightness.light,
   );
-  static ThemeData get themeSky => _themeSky;
-
-  static final _themePastel = ThemeData(
-      primaryColor: MyColor.pastel[100],
-      // accentColor: MyColor.pastel[200],
-      // selectedRowColor: MyColor.pastel[300],
-      primarySwatch: MyColor.pastel,
-      brightness: Brightness.light,
-    );
-  static ThemeData get themePastel => _themePastel;
+  static ThemeData get themeDataPastel => _themeDataPastel;
 
 
   static Map<String, ThemeData> toMap() {
     return {
-      ThemeType.ROSE: themeRose,
-      ThemeType.SKY: themeSky,
-      ThemeType.PASTEL: themePastel,
+      ThemeType.ROSE: themeDataRose,
+      ThemeType.SKY: themeDataSky,
+      ThemeType.PASTEL: themeDataPastel,
     };
   }
 
@@ -45,4 +55,5 @@ class AppTheme {
   String toString() {
     return toMap() as String;
   }
+
 }

@@ -70,7 +70,7 @@ class _SetFontState extends State<SetFont> {
                       title: 'フォントサイズ',
                       value: fsize,
                       items: fontSizes,
-                      onChanged: (value) async {
+                      onChanged: (String value) async {
                         setState(() => fsize = value);
                         prefs = await SharedPreferences.getInstance();
                         await prefs.setDouble('fontSize', double.parse(value));
@@ -81,7 +81,7 @@ class _SetFontState extends State<SetFont> {
                       title: 'フォントカラー',
                       value: fcolor,
                       items: fontColors.keys.toList(),
-                      onChanged: (value) async {
+                      onChanged: (String value) async {
                         setState(() => fcolor = value);
                         prefs = await SharedPreferences.getInstance();
                         await prefs.setString('fontColor', value);

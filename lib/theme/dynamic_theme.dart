@@ -3,17 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'app_theme.dart';
-import 'color.dart';
-import 'theme_type.dart';
-import 'package:tag_memo/data/sharedPreferences.dart';
+import './app_theme.dart';
+import './theme_type.dart';
+import '../data/shared_preferences/sharedPreferences.dart';
 
 
 typedef ThemedWidgetBuilder = Widget Function(BuildContext context, ThemeData data);
 
 class DynamicTheme extends StatefulWidget {
   /*
-  * テーマカラー
+  * 動的にアプリテーマを変更するクラス。
   */
   const DynamicTheme({
     Key? key,
@@ -25,7 +24,7 @@ class DynamicTheme extends StatefulWidget {
   // テーマが変更されたときに呼び出されるビルダー
   final ThemedWidgetBuilder themedWidgetBuilder;
   // 起動時のデフォルトのテーマ > 初期値: ThemeType.rose
-  final String defaultThemeName; // 初期値
+  final String defaultThemeName;
   // 起動時にテーマを読み込むかどうか > 初期値: true
   final bool loadThemeTypesOnStart;
 
@@ -39,39 +38,36 @@ class DynamicTheme extends StatefulWidget {
 }
 
 class DynamicThemeState extends State<DynamicTheme> {
-
   // アプリに設定するテーマ。
   late ThemeData _themeData;
-
+  ThemeData get themeData => _themeData;
   // アプリに設定するテーマ名。
   late String _themeName;
-
+  // 記録されているテーマを操作するか。
   bool _shouldLoadThemeTypes = true;
 
-  // 現在の `ThemeData` を取得します
-  ThemeData get themeData => _themeData;
-
+  // 定義されているThemeDataを取得。
   Map<String, ThemeData> appThemeData = AppTheme.toMap();
+
 
   @override
   void initState() {
     super.initState();
 
+    // 変数を初期化。
     _initVariables();
-
-    _themeData = ThemeData(
-      primaryColor: MyColor.rose[2],
-      // accentColor: MyColor.rose[1],
-      // selectedRowColor: MyColor.rose[4],
-      brightness: Brightness.light,
-    );
-
+    // 記録されているテーマデータ読み込み。
     loadThemeType();
-
   }
 
-  // `loadBrightnessOnStart` 値に応じて明るさをロードします
+  void _initVariables() {
+    /// 変数を初期化。
+    _themeName = widget.defaultThemeName;
+    _shouldLoadThemeTypes = widget.loadThemeTypesOnStart;
+  }
+
   Future<void> loadThemeType() async {
+    /// _shouldLoadThemeTypesの値に応じて記録されているテーマデータを読み込む。
     // 保存されているテーマを使用したくない場合は処理を終了する。
     if (!_shouldLoadThemeTypes) {
       return;
@@ -82,12 +78,6 @@ class DynamicThemeState extends State<DynamicTheme> {
     setState(() {
       _themeData = appThemeData[_themeName]!;
     });
-
-  }
-  // 変数を初期化します
-  void _initVariables() {
-    _themeName = widget.defaultThemeName;
-    _shouldLoadThemeTypes = widget.loadThemeTypesOnStart;
   }
 
   @override

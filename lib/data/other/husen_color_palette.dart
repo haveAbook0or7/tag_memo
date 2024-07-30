@@ -2,14 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tag_memo/data/shared_preferences/sharedPreferences.dart';
 
-import 'color.dart';
-import 'theme_type.dart';
-import 'package:tag_memo/data/sharedPreferences.dart';
+import '../../theme/custom_material_color.dart';
+import '../../theme/theme_type.dart';
 
 class ThemeColor {
-
-  static Map<String, MaterialColor> appThemeColor = MyColor.toMap();
+  static Map<String, MaterialColor> appThemeColor = CustomMaterialColor.toMap();
 
   // SharedPreferencesに保存されているテーマ名を取得。
   Future<String> _getThemeName() async {
@@ -46,11 +45,4 @@ class ThemeColor {
 
     return colors;
   }
-
-  // static Future<ThemeType> loadThemeType() async {
-  //   final prefs = await SharedPreferences.getInstance();
-
-  //   return ThemeType.of(prefs.getString('theme_type')!) ?? ThemeType.rose;
-  // }
-
 }

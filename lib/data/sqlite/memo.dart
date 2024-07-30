@@ -13,7 +13,7 @@ class Memo {
   });
 
   int orderId;
-  int memoId;
+  String memoId;
   String? memoPreview;
   String? memo;
   int backColor;

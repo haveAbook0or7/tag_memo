@@ -1,10 +1,13 @@
+// ignore: file_names
 import 'package:flutter/material.dart';
 
 class HusenColor {
-
-  HusenColor({this.color, this.backSideColor,});
-  Color? color;
-  Color? backSideColor;
+  HusenColor({
+    required this.color, 
+    required this.backSideColor,
+  });
+  final Color color;
+  final Color backSideColor;
 
   Map<String, dynamic> toMap() {
     return {
@@ -14,40 +17,37 @@ class HusenColor {
   }
   @override
   String toString() {
-    return 'Thokin{color: $color, backSideColor: $backSideColor,}';
+    return 'HusenColor{color: $color, backSideColor: $backSideColor,}';
   }
 }
 
 
 class HusenContainer extends StatelessWidget {
-  HusenContainer({ 
+  HusenContainer({
+    Key? key, 
     this.mekuriFlg,
-    this.height,
-    this.width,
-    this.child,
-    this.color,
-    this.backSideColor,
-  });
-  bool? mekuriFlg;
-  double? height;
-  double? width;
-  Widget? child;
-  Color? color;
-  Color? backSideColor;
+    this.height = 300,
+    this.width = 300,
+    Widget? child,
+    HusenColor? husencolor,
+  }) : 
+    husencolor = husencolor ?? HusenColor(color: Colors.greenAccent, backSideColor: Colors.green), 
+    child = child ?? SizedBox(width: width, height: height,),
+    super(key: key);
+  final bool? mekuriFlg;
+  final double height;
+  final double width;
+  final Widget child;
+  final HusenColor husencolor;
+
   @override
   Widget build(BuildContext context) {
-    mekuriFlg = mekuriFlg ?? true;
-    height ??= 300;
-    width ??= 300;
-    color ??= Colors.greenAccent;
-    backSideColor ??= Colors.green;
 
     return CustomPaint(
-      size: Size(width!, height!),
+      size: Size(width, height),
       painter: HusenPainter(
-        mekuriFlg: mekuriFlg!,
-        color: color!,
-        backSideColor: backSideColor!,
+        mekuriFlg: mekuriFlg ?? false,
+        husencolor: husencolor,
       ),
       child: child,
     );
@@ -56,48 +56,42 @@ class HusenContainer extends StatelessWidget {
 
 class HusenPainter extends CustomPainter {
   HusenPainter({ 
-    this.mekuriFlg,
-    this.color,
-    this.backSideColor,
+    this.mekuriFlg = false,
+    required this.husencolor,
   });
-  bool? mekuriFlg;
-  Color? color;
-  Color? backSideColor;
+  final bool mekuriFlg;
+  final HusenColor husencolor;
 
   @override
   void paint(Canvas canvas, Size size) {
-    var paint = Paint();
-    paint.color = color!;
-    var path = Path();
+    var path = Path()
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width, size.height / 6 * 5)
+      ..lineTo(size.width / 6 * 5, size.height)
+      ..lineTo(0, size.height)
+      ..lineTo(0, 0);
+    var paint = Paint()
+      ..color = husencolor.color;
 
-    path.lineTo(size.width, 0);
-    path.lineTo(size.width, size.height / 6 * 5);
-    path.lineTo(size.width / 6 * 5, size.height);
-    path.lineTo(0, size.height);
-    path.lineTo(0, 0);
     canvas.drawPath(path, paint);
 
-    if(mekuriFlg!){
-      paint = Paint();
-      paint.color = backSideColor!;
-      path = Path();
-
-      path.moveTo(size.width / 6 * 5, size.height / 6 * 5);
-      path.lineTo(size.width, size.height / 6 * 5);
-      path.lineTo(size.width / 6 * 5, size.height);
-      path.lineTo(size.width / 6 * 5, size.height / 6 * 5);
-      canvas.drawPath(path, paint);
+    if(mekuriFlg){
+      path = Path()
+        ..moveTo(size.width / 6 * 5, size.height / 6 * 5)
+        ..lineTo(size.width, size.height / 6 * 5)
+        ..lineTo(size.width / 6 * 5, size.height)
+        ..lineTo(size.width / 6 * 5, size.height / 6 * 5);
+      paint = Paint()
+        ..color = husencolor.backSideColor;
     }else{
-      paint = Paint();
-      paint.color = color!;
-      path = Path();
-
-      path.moveTo(size.width, size.height);
-      path.lineTo(size.width, size.height / 6 * 5);
-      path.lineTo(size.width / 6 * 5, size.height);
-      path.lineTo(size.width, size.height);
-      canvas.drawPath(path, paint);
+      path = Path()
+        ..moveTo(size.width, size.height)
+        ..lineTo(size.width, size.height / 6 * 5)
+        ..lineTo(size.width / 6 * 5, size.height)
+        ..lineTo(size.width, size.height);
     }
+
+    canvas.drawPath(path, paint);
   }
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;

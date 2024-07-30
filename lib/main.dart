@@ -3,17 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_memo/customWidget/husenContainer.dart';
-import 'package:tag_memo/data/memo.dart';
-import 'package:tag_memo/data/sqlite.dart';
+import 'package:tag_memo/data/sqlite/memo.dart';
+import 'package:tag_memo/data/sqlite/sqlite.dart';
 import 'package:tag_memo/editingMemo.dart';
-import 'package:tag_memo/theme/color.dart';
+import 'package:tag_memo/theme/custom_material_color.dart';
 
 import 'customWidget/customText.dart';
 import 'customWidget/reorderableHusenView.dart';
+import 'data/other/husen_color_palette.dart';
+import 'data/shared_preferences/sharedPreferences.dart';
 import 'setFont.dart';
 import 'setTheme.dart';
 import 'theme/dynamic_theme.dart';
-import 'theme/theme_color.dart';
 
 void main(){
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +28,8 @@ void main(){
 
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return DynamicTheme(
@@ -43,7 +46,7 @@ class MyApp extends StatelessWidget {
 }
 
 class TagMemo extends StatefulWidget {
-  const TagMemo({Key key = const Key(''), required this.title}) : super(key: key);
+  const TagMemo({Key? key, required this.title}) : super(key: key);
   final String title;
   @override
   _TagMemoState createState() => _TagMemoState();
@@ -55,9 +58,10 @@ class _TagMemoState extends State<TagMemo> {
   /* リロード時のぐるぐる */
   late Widget? cpi;
   /* 初期化を一回だけするためのライブラリ */
+  // ignore: strict_raw_type
   final AsyncMemoizer memoizer = AsyncMemoizer();
   /* テーマカラー */
-  MaterialColor themeColor = MyColor.rose;
+  MaterialColor themeColor = CustomMaterialColor.rose;
   /* メモプレビューリスト */
   List<Memo?> _previewList = [];
 
@@ -77,9 +81,10 @@ class _TagMemoState extends State<TagMemo> {
     themeColor = await ThemeColor().getBasicAndThemeColor();
     /** プレビューリスト取得 */
     _previewList = await getMemoPreview();
+
     final prefs = await SharedPreferences.getInstance();
-    fsize = prefs.getDouble('fontSize') ?? 16.0;
-    fcolor = fontColors[(prefs.getString('fontColor') ?? 'ブラック')]!;
+    fsize = prefs.getDouble(SharedPreferencesKeys.fontSize) ?? 16.0;
+    fcolor = fontColors[(prefs.getString(SharedPreferencesKeys.fontColor) ?? 'ブラック')]!;
     /** グルグル終わり */
     setState(() => cpi = null);
   }
@@ -100,7 +105,7 @@ class _TagMemoState extends State<TagMemo> {
         itemCount: leadingIcon.length,
         itemBuilder: (context, index) {
           if(index == 0){ /// 先頭はヘッダー
-            return DrawerHeader(decoration: BoxDecoration(color: Theme.of(context).primaryColor,), child: null,);
+            return DrawerHeader(decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary,), child: null,);
           }
           return ListTile(
             leading:leadingIcon[index], // 左のアイコン
@@ -117,7 +122,7 @@ class _TagMemoState extends State<TagMemo> {
               });
             },
           );
-        }),
+        },),
       ),
       body: LayoutBuilder(builder: (context, constraints) {
         deviceHeight = constraints.maxHeight;
@@ -136,11 +141,12 @@ class _TagMemoState extends State<TagMemo> {
                 /** アイテムがあるならプレビュー表示 */
                 return CustomText(
                   _previewList[index]!.memoPreview ?? '',
-                  overflow: TextOverflow.ellipsis, maxLines: 7-ctStyleIndex,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 7-ctStyleIndex,
                   style: TextStyle(fontSize: fontsizes[ctStyleIndex], color: fcolor),
                 );
               },
-              keybuilder: (int index){
+              callbackbuilder: (int index){
                 return _previewList[index];
               },
               colorsbuilder: (int index){
@@ -151,17 +157,27 @@ class _TagMemoState extends State<TagMemo> {
                 final backSide = HSVColor.fromColor(color!);
                 return HusenColor(color: color, backSideColor: backSide.withValue(backSide.value-0.15).toColor());
               },
-              onReorder: (List<dynamic> callbacData) async {
-                final memoIds = <int>[];
-                for(final cblist in callbacData){
-                  if(cblist == null){
-                    memoIds.add(0);
-                  }else{
-                    // memoIds.add(cblist.memoId);
-                    memoIds.add(cblist as int);
-                  }
+              onReorder: (
+                List<dynamic> callbackData, // 入れ替え処理後のデータ配列
+                int mvsrcIndex,             // 入れ替え元のインデックス
+                int mvtarIndex,             // 入れ替え先のインデックス
+              ) async {
+                final sourcePlaceMemo = callbackData[mvsrcIndex] as Memo?; // 入れ替え処理後、入れ替え元座標にあるメモ
+                final targetPlaceMemo = callbackData[mvtarIndex] as Memo?; // 入れ替え処理後、入れ替え先座標にあるメモ
+
+                /** DBの入れ替え処理 */
+                if(sourcePlaceMemo != null){  // 入れ替え先にデータが存在した場合
+                  // 入れ替え先座標にあったメモを入れ替え元座標にコピー
+                  await updateMemoOrder(mvsrcIndex, sourcePlaceMemo.memoId);
+                }else{                        // 入れ替え先にデータが存在しない場合
+                  // 入れ替え元座標を削除(nullを入れ替え元座標にコピーする)
+                  await deleteMemoOrder(mvsrcIndex);
                 }
-                await renewMemoOrder(memoIds);
+                if(targetPlaceMemo != null){  // NOTE: 型がdynamicの都合上nullチェックをするが、仕様上nullであることはない。
+                  // 入れ替え元座標にあったメモを入れ替え先座標にコピー
+                  await updateMemoOrder(mvtarIndex, targetPlaceMemo.memoId);
+                }
+
                 await loading();
               },
               onTap: (int index){
@@ -184,18 +200,18 @@ class _TagMemoState extends State<TagMemo> {
                 alignment: Alignment.topCenter,
                 width: 25, height: 25,
                 child: cpi,
-              )
+              ),
             )
         ],);
         
-      }),
+      },),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) {
               // メモ編集画面へ(新規作成)
-              return const EditingMemo(memoId: 0,);
+              return const EditingMemo();
             }),
           ).then((value) async {
             await loading();

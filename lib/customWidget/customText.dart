@@ -1,47 +1,48 @@
+// ignore: file_names
+import 'dart:math';
 import 'package:flutter/material.dart';
 
-
 class CustomText extends StatelessWidget {
-  String data;
-  TextStyle style;
-  TextAlign? textAlign;
-  TextDirection? textDirection;
-  TextOverflow overflow;
-  int? maxLines;
-  
-  CustomText(
-    this.data,{
-    required this.style,
-    this.textAlign,
-    this.textDirection,
-    required this.overflow,
-    this.maxLines,
-  });
+  const CustomText(
+    this.data,
+    {
+      Key? key, 
+      required this.style,
+      this.textAlign,
+      this.textDirection,
+      required this.overflow,
+      this.maxLines = 7,
+    }
+  ) : super(key: key);
+  final String data;
+  final TextStyle style;
+  final TextAlign? textAlign;
+  final TextDirection? textDirection;
+  final TextOverflow overflow;
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      final widgetHeight = constraints.maxHeight;
-      final widgetWidth = constraints.maxWidth;
       final datas = data.split('\n');
-      maxLines = maxLines ?? datas.length;
 
-        return Container(
-          height: widgetHeight, width: widgetWidth,
+        return SizedBox(
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: datas.length <= maxLines! ?
-            List.generate(datas.length, (index) {
-              return Text(datas[index], overflow: overflow, style: style, textAlign: textAlign, textDirection: textDirection);
-            }) : 
-            List.generate(maxLines!+1, (index) {
-              if(index == maxLines){
-                return Text('...', style: style, textAlign: textAlign, textDirection: textDirection);
-              }
-              return Text(datas[index], overflow: overflow, style: style, textAlign: textAlign, textDirection: textDirection);
+            children: 
+            List.generate(min(datas.length, maxLines), (index) {
+              return Text(
+                (index == maxLines-1) ? '...' : datas[index],
+                overflow: overflow,
+                style: style,
+                textAlign: textAlign,
+                textDirection: textDirection,
+              );
             }),
           ),
         );
-    });
+    },);
   }
 }

@@ -1,51 +1,20 @@
+// ignore: file_names
+import 'dart:math';
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:tag_memo/customWidget/husenContainer.dart';
-import "dart:async";
 
 
-// ignore: must_be_immutable
 class ReorderableHusenView extends StatefulWidget {
-
-  ReorderableHusenView._init({
-    this.crossAxisCount = 3,
-    this.axisSpacing = 4.0,
-    required this.children,
-    required this.keys,
-    required this.colors,
-    required this.onReorder,
-    required this.onTap,
-    Key key = const Key(''),
-  }) : super(key: key);
-
-  /// 列の数
-  final int crossAxisCount;
-  /// 付箋と付箋の間の隙間
-  final double axisSpacing;
-  /// アイテム数
-  late int itemcount;
-  /// アイテム
-  late List<Widget?> children = [];
-  late Widget Function(int) itembuilder;
-  /// 入れ替え後返して欲しい配列データを入れる。キーとか
-  late List<dynamic> keys = [];
-  late dynamic Function(int) keybuilder;
-  /// 付箋の色
-  late List<HusenColor?> colors = [];
-  late HusenColor Function(int) colorsbuilder;
-  /// 入れ替え後keysを親へ渡す
-  late void Function(List<dynamic> keys) onReorder;
-  /// ジェスチャー類
-  late void Function(int index) onTap;
 
   ReorderableHusenView.builder({
     int crossAxisCount = 3,
     double axisSpacing = 4.0,
     required Widget? Function(int) itembuilder,
     required int itemcount,
-    required dynamic Function(int) keybuilder,
+    required dynamic Function(int) callbackbuilder,
     HusenColor? Function(int)? colorsbuilder,
-    required void Function(List<dynamic> keys) onReorder,
+    required void Function(List<dynamic> callbackList, int oldIndex, int newIndex,) onReorder,
     required void Function(int index) onTap,
     Key key = const Key(''),
   }) : this._init(
@@ -54,8 +23,8 @@ class ReorderableHusenView extends StatefulWidget {
     children: List.generate(itemcount, (index){
       return itembuilder(index);
     }),
-    keys: List.generate(itemcount, (index){
-      return keybuilder(index);
+    callbackList: List.generate(itemcount, (index){
+      return callbackbuilder(index);
     }),
     colors: List.generate(itemcount, (index){
       if(colorsbuilder == null){
@@ -68,218 +37,52 @@ class ReorderableHusenView extends StatefulWidget {
     onTap:onTap,
     key: key,
   );
+  ReorderableHusenView._init({
+    Key? key, 
+    this.crossAxisCount = 3,
+    this.axisSpacing = 4.0,
+    required this.children,
+    required this.callbackList,
+    required this.colors,
+    required this.onReorder,
+    required this.onTap,
+  }) : super(key: key);
+
+  /// 列の数
+  final int crossAxisCount;
+  /// 付箋と付箋の間の隙間
+  final double axisSpacing;
+  /// アイテム数
+  late int itemcount;
+  /// アイテム
+  late List<Widget?> children = [];
+  late Widget Function(int) itembuilder;
+  /// 入れ替え後返して欲しい配列データを入れる。キーとか
+  late List<dynamic> callbackList = [];
+  late dynamic Function(int) keybuilder;
+  /// 付箋の色
+  late List<HusenColor?> colors = [];
+  late HusenColor Function(int) colorsbuilder;
+  /// 入れ替え後keysを親へ渡す
+  late void Function(List<dynamic> callbackList, int oldIndex, int newIndex,) onReorder;
+  /// ジェスチャー類
+  late void Function(int index) onTap;
+  /// 定数
+  final String imgPath = 'images/Wood_Cedar.jpeg';
+  final Size imgOriginSize = const Size(800, 500);
 
   @override
   ReorderableHusenViewState createState() => ReorderableHusenViewState();
 }
 
 class ReorderableHusenViewState extends State<ReorderableHusenView> {
-  final AsyncMemoizer memoizer = AsyncMemoizer();
-  /// グリッドビューの高さ
-  late double wigetHeight;
-  late int imgCount;
-  /// グリッドアイテムの大きさ
-  late double gredSize;
-  /// アイテムのPosition
-  List<Offset> fixedPosition = [];
-  /// 付箋ウィジェットの制御
-  List<bool> mekuriflgs = [];
-  /// previewに必要なあれこれ
-  bool flg = true;
-  Offset startPosition = Offset(0.0, 0.0);
-  double top = 0;
-  double left = 0;
-  Widget? previewItem;
-  HusenColor? previewColor;
+  final AsyncMemoizer<void> memoizer = AsyncMemoizer();
+  // プレビューウィジェットデータ
+  PreviewItem preview = PreviewItem();
 
-  @override
-  Widget build(BuildContext context) {
-    /** ウィジェット */
-    return LayoutBuilder(builder: (context, constraints) {
-      /** グリッドサイズ */
-      gredSize = (constraints.maxWidth - widget.axisSpacing * (widget.crossAxisCount - 1)) / widget.crossAxisCount;
-      /** 余裕をもってスクロールできるように設定 */
-      wigetHeight = ((widget.children.length ~/ widget.crossAxisCount * gredSize) + widget.children.length ~/ widget.crossAxisCount * widget.axisSpacing) + gredSize * 2;
-      /** ウィジェットのHeightより小さかったらウィジェットのHeightに変える */
-      wigetHeight = wigetHeight < constraints.maxHeight ? constraints.maxHeight : wigetHeight;
-      /** 木目の背景を何枚配置するか(A RenderFlex overflowedが出ないようwigetHeightを修正) */
-      imgCount = wigetHeight ~/ (constraints.maxWidth / 8 * 5) + 1;
-      wigetHeight = wigetHeight < (constraints.maxWidth / 8 * 5) * imgCount ? (constraints.maxWidth / 8 * 5) * imgCount : wigetHeight;
-      /** SetState時に再設定されるとおかしくなるので最初の一回だけ設定 */
-      memoizer.runOnce(() async {
-        /** プレビュー用アイテムを画面外に飛ばす */
-        top = -gredSize;
-        left = -gredSize;
-      });
-      /** 各アイテムのPositionを設定 */
-      fixedPosition = [];
-      mekuriflgs = [];
-      for(int index = 0; index < widget.children.length; index++){
-        fixedPosition.add(Offset(
-          (index % widget.crossAxisCount * gredSize) + index % widget.crossAxisCount * widget.axisSpacing, 
-          (index ~/ widget.crossAxisCount * gredSize) + index ~/ widget.crossAxisCount * widget.axisSpacing
-        ));
-        mekuriflgs.add(false);
-      }
-        /** グリッドビュー */
-        return SingleChildScrollView(
-          child: Container(
-            height: wigetHeight,
-            /** プレビュー用アイテムが一番上にするためStackを二重にする */
-            child: Stack(children: [
-              Column(children: List.generate(imgCount, (index) => Image.asset("images/Wood_Cedar.jpeg"))),
-              /** アイテム */
-              Stack(children: List.generate(widget.children.length, (index) {
-                return Positioned(
-                  top: fixedPosition[index].dy,
-                  left: fixedPosition[index].dx,
-                  child: GestureDetector(
-                    onTap: (){
-                      widget.onTap(index);
-                    },
-                    onLongPressStart: (LongPressStartDetails details) {
-                      /** 空のアイテムの時は後の入れ替え処理をしないようにする */
-                      if (widget.children[index] == null){
-                        setState(() => flg = false);
-                      } 
-                      if(flg){
-                        setState(() {
-                          /** 付箋をめくる */
-                          mekuriflgs[index] = true;
-                          /** 指の位置によってtopとleftを補正 */
-                          startPosition = details.localPosition;
-                          top = fixedPosition[index].dy + details.localPosition.dy - startPosition.dy;
-                          left = fixedPosition[index].dx + details.localPosition.dx - startPosition.dx;
-                          /** プレビュー用アイテムに移動するアイテムを入れて */
-                          previewItem = widget.children[index]!;
-                          previewColor = widget.colors[index];
-                          /** 元の場所は見えないようにする */
-                          widget.children[index] = null;
-                        });
-                      }
-                    },
-                    onLongPressMoveUpdate: (LongPressMoveUpdateDetails details) {
-                      if(flg){
-                        setState(() {
-                          top = fixedPosition[index].dy + details.localPosition.dy - startPosition.dy;
-                          left = fixedPosition[index].dx + details.localPosition.dx - startPosition.dx;
-                        });
-                      }
-                    },
-                    onLongPressEnd: (LongPressEndDetails details) async {
-                      /** アイテムが空じゃなかったら入れ替え */
-                      if (flg) {
-                        /** スタート時からの差分 */
-                        double dx = details.localPosition.dx;
-                        double dy = details.localPosition.dy;
-                        /** なんかマイナスの時は+gredSizeされるっぽいので補正 */
-                        dx -= dx < 0 ? gredSize : 0;
-                        dy -= dy < 0 ? gredSize : 0;
-                        /** 移動先index算出 */
-                        int moved = widget.crossAxisCount * (dy ~/ gredSize) + (dx ~/ gredSize); //差分
-                        moved += index; // 移動先index
-                        setState(() {
-                          /** アイテム配列サイズを超えるなら拡張 */
-                          if (moved >= widget.children.length) {
-                            for (var i = widget.children.length; i <= moved; i++) {
-                              widget.children = listAddAt(widget.children, i, null) as List<Widget?>;
-                              widget.colors = listAddAt(widget.colors, i, null) as List<HusenColor>;
-                              widget.keys = listAddAt(widget.keys, i, null);
-                              fixedPosition = listAddAt(fixedPosition, i, Offset((i % widget.crossAxisCount * gredSize) + i % widget.crossAxisCount * widget.axisSpacing, (i ~/ widget.crossAxisCount * gredSize) + i ~/ widget.crossAxisCount * widget.axisSpacing)) as List<Offset>;
-                              mekuriflgs = listAddAt(mekuriflgs, i, false) as List<bool>;
-                            }
-                          }
-                          /** 入れ替え先の付箋をめくる */
-                          mekuriflgs[moved] = true;
-                          /** 入れ替え */
-                          var cData = widget.keys[index];
-                          widget.children[index] = widget.children[moved];
-                          widget.colors[index] = widget.colors[moved];
-                          widget.keys[index] = widget.keys[moved];
-                          widget.children[moved] = previewItem;
-                          widget.colors[moved] = previewColor!;
-                          widget.keys[moved] = cData;
-                          /** 末尾の空白を消す */
-                          widget.children = endNullDelete(widget.children) as List<Widget?>;
-                          widget.colors = endNullDelete(widget.colors) as List<HusenColor>;
-                          widget.keys = endNullDelete(widget.keys);
-                          /** プレビュー用アイテムを画面外に飛ばす */
-                          previewItem = null;
-                          previewColor = null;
-                          top = -gredSize;
-                          left = -gredSize;
-                          /** 元の場所付箋のめくりを戻す */
-                          mekuriflgs[index] = false;
-                        });
-                        /** 一瞬待ってから付箋のめくりを戻す */
-                        await new Future.delayed(new Duration(milliseconds: 110));
-                        setState(() => mekuriflgs[moved] = false);
-                        /** keysを親に返す */
-                        widget.onReorder(widget.keys);
-                      }
-                    },
-                    /** アイテム
-                     *  うっかりnullを直で突っ込むと無限のサイズが与えられました的なのが出るから
-                     *  Containerで囲む */
-                    child: Container(
-                      width: gredSize, height: gredSize, 
-                      color: Colors.transparent,
-                      child: husenOrNull(widget.children[index], mekuriflgs[index], widget.colors[index]!)
-                    ),
-                  )
-                );
-              })),
-              /** プレビュー用アイテム */
-              Positioned(
-                top: top,
-                left: left,
-                child: Container(
-                  decoration: BoxDecoration(
-                    boxShadow: previewItem == null ? null : [const BoxShadow(
-                      color: Colors.black12, 
-                      blurRadius: 10.0, 
-                      spreadRadius: 1.0, 
-                      offset: Offset(5, 5))
-                    ],), 
-                  child: HusenContainer(
-                    color: previewColor == null ? null : previewColor!.color,
-                    backSideColor: previewColor == null ? null : previewColor!.backSideColor,
-                    mekuriFlg: true,
-                    child: Container(width: gredSize, height: gredSize, child: previewItem),
-                  )
-                ),
-              ),
-            ]),
-          )
-        );
-    });
-  }
-
-  Widget? husenOrNull(Widget? item, bool mekuriflgs, HusenColor color){
-    if(item == null){
-      return null;
-    }else{
-      return HusenContainer(
-        color: color.color,
-        backSideColor: color.backSideColor,
-        mekuriFlg: mekuriflgs,
-        child: Container(width: gredSize, height: gredSize, child: item),
-      );
-    }
-  }
-  List<dynamic> listAddAt(List<dynamic> list, int index, dynamic item) {
-    /** アイテム配列サイズを超えるならnullを入れて拡張 */
-    if (index >= list.length) {
-      for (int i = list.length; i <= index; i++) {
-        list.add(null);
-      }
-    }
-    list[index] = item;
-    return list;
-  }
   List<dynamic> endNullDelete(List<dynamic> list) {
-    /** 末尾のnullを削除 */
-    for (int i = list.length - 1; i >= 0; i--) {
+    /** List末尾のnullを削除する関数 */
+    for (var i = list.length - 1; i >= 0; i--) {
       if (list[i] != null) {
         break;
       }
@@ -287,4 +90,214 @@ class ReorderableHusenViewState extends State<ReorderableHusenView> {
     }
     return list;
   }
+
+  @override
+  Widget build(BuildContext context) {
+    /** ウィジェット */
+    return LayoutBuilder(builder: (context, constraints) {
+      /** グリッドアイテムサイズ */
+      final gredSize = (constraints.maxWidth - widget.axisSpacing * (widget.crossAxisCount - 1)) / widget.crossAxisCount;
+
+      /** グリッドビュー背景の高さ */
+      /// グリッドアイテム2行分大きく設定
+      final rowCount = (widget.children.length / widget.crossAxisCount).ceil();
+      var backgroundHeight = gredSize * rowCount + widget.axisSpacing * (rowCount - 1) + gredSize * 2;
+      /// ウィジェットのHeightより小さかったらウィジェットのHeightに変える */
+      backgroundHeight = max(backgroundHeight, constraints.maxHeight);
+
+      /** 木目の背景を何枚配置するか */
+      final backImgHeight = constraints.maxWidth / widget.imgOriginSize.width * widget.imgOriginSize.height;
+      final backimgCount = (backgroundHeight / backImgHeight).ceil();
+      /// 木目の背景imgがウィジェットからはみ出さないように調整
+      backgroundHeight = max(backgroundHeight, backImgHeight * backimgCount);
+
+      /** SetState時に再設定されるとおかしくなるので最初の一回だけ設定 */
+      memoizer.runOnce(() async {
+        /** プレビュー用アイテムを画面外に飛ばす */
+        preview..top = -gredSize
+        ..left = -gredSize;
+      });
+
+      /** 各アイテムのPositionを設定 */
+      final childlenPosition = List<Offset?>.generate(
+        widget.children.length,
+        (index) => Offset(
+          index % widget.crossAxisCount * (gredSize + widget.axisSpacing), 
+          index ~/ widget.crossAxisCount * (gredSize + widget.axisSpacing),
+        ),
+      );
+
+      /** グリッドビュー */
+      return SingleChildScrollView(
+        child: SizedBox(
+          height: backgroundHeight,
+          /** プレビュー用アイテムが一番上にするためStackを二重にする */
+          child: Stack(children: [
+            /** 木目の背景 */
+            Column(children: List.generate(backimgCount, (index) => Image.asset(widget.imgPath))),
+            /** アイテム */
+            Stack(children: List.generate(widget.children.length, (index) {
+              return Positioned(
+                top: childlenPosition[index]!.dy,
+                left: childlenPosition[index]!.dx,
+                child: GestureDetector(
+                  onTap: (){
+                    widget.onTap(index);
+                  },
+                  // ----- 付箋入れ替え開始処理 -----------------------------------
+                  onLongPressStart: (LongPressStartDetails details) {
+                    setState(() {
+                      /** フラグをセット */
+                      preview.isMove = widget.children[index] != null;
+                      /// アイテムが空の場合、今後の処理をキャンセル
+                      if(!preview.isMove){ return; }
+
+                      /** プレビューウィジェットに移動するアイテムを移す */
+                      preview..top = childlenPosition[index]!.dy
+                      ..left = childlenPosition[index]!.dx
+                      ..previewChild = widget.children[index]
+                      ..previewColor = widget.colors[index]
+                      ..previewCallbackData = widget.callbackList[index];
+                      /** 元のアイテムを削除 */
+                      widget.children[index] = null;
+                    });
+                  },
+                  // ----- 付箋入れ替え移動処理 -----------------------------------
+                  onLongPressMoveUpdate: (LongPressMoveUpdateDetails details) {
+                    if(preview.isMove){
+                      setState(() {
+                        /** 動きに合わせてプレビューウィジェットの座標を補正する */
+                        preview..top = childlenPosition[index]!.dy + details.offsetFromOrigin.dy
+                        ..left = childlenPosition[index]!.dx + details.offsetFromOrigin.dx;
+                      });
+                    }
+                  },
+                  // ----- 付箋入れ替え終了処理 -----------------------------------
+                  onLongPressEnd: (LongPressEndDetails details) async {
+                    if (preview.isMove) {
+                      /** 移動先の座標 */
+                      final dx = childlenPosition[index]!.dx + details.localPosition.dx;
+                      final dy = childlenPosition[index]!.dy + details.localPosition.dy;
+                      /** 移動先index算出 */
+                      final moved = widget.crossAxisCount * (dy ~/ gredSize) + (dx ~/ gredSize); //差分
+                      setState(() {
+                        /** 移動先が配列サイズを超えるなら拡張する */
+                        if (moved >= widget.children.length) {
+                          final expansion = List.generate(moved + 1 - widget.children.length, (index) => null);
+
+                          widget..children.addAll(expansion)
+                          ..colors.addAll(expansion)
+                          ..callbackList.addAll(expansion);
+                          childlenPosition.addAll(expansion);
+                        }
+                        /// 入れ替え
+                        /** 移動先のデータを移動元にセット */
+                        widget.children[index] = widget.children[moved];
+                        widget.colors[index] = widget.colors[moved];
+                        widget.callbackList[index] = widget.callbackList[moved];
+                        /** プレビューアイテムアイテムに退避していたデータを移動先にセット */
+                        widget.children[moved] = preview.previewChild;
+                        widget.colors[moved] = preview.previewColor;
+                        widget.callbackList[moved] = preview.previewCallbackData;
+
+                        /** 各リストの末尾の空白を消す */
+                        widget..children = endNullDelete(widget.children) as List<Widget?>
+                        ..colors = endNullDelete(widget.colors) as List<HusenColor?>
+                        ..callbackList = endNullDelete(widget.callbackList);
+
+                        /** プレビュー用アイテムを画面外に飛ばす */
+                        preview..previewChild = null
+                        ..previewColor = null
+                        ..top = -gredSize
+                        ..left = -gredSize;
+                      });
+
+                      /** onReorderを発火 */
+                      widget.onReorder(
+                        widget.callbackList, 
+                        index,
+                        moved,
+                      );
+                    }
+                  },
+                  /** アイテム */
+                  child: Container(
+                    width: gredSize, height: gredSize, 
+                    color: Colors.transparent,
+                    child: widget.children[index] != null ? 
+                      HusenContainer(
+                        husencolor: widget.colors[index],
+                        mekuriFlg: false,
+                        child: SizedBox(width: gredSize, height: gredSize, child: widget.children[index]),
+                      ) : 
+                      null,
+                  ),
+                ),
+              );
+            }),),
+            /** プレビューウィジェット */
+            Positioned(
+              top: preview.top,
+              left: preview.left,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  boxShadow: preview.previewChild == null ? null : [const BoxShadow(
+                    color: Colors.black12, 
+                    blurRadius: 10, 
+                    spreadRadius: 1, 
+                    offset: Offset(5, 5),)
+                  ],), 
+                child: HusenContainer(
+                  husencolor: preview.previewColor,
+                  mekuriFlg: true,
+                  child: SizedBox(width: gredSize, height: gredSize, child: preview.previewChild),
+                ),
+              ),
+            ),
+          ],),
+        ),
+      );
+    },);
+  }
+}
+
+class PreviewItem {
+  /*
+  * 
+  * 
+  * 
+  */ 
+  PreviewItem({ 
+    this.isMove = true,
+    this.top = 0.0,
+    this.left = 0.0,
+    this.previewChild,
+    this.previewColor,
+    this.previewCallbackData,
+  });
+
+  bool isMove;
+  double top;
+  double left;
+  Widget? previewChild;
+  HusenColor? previewColor;
+  dynamic previewCallbackData;
+
+
+  Map<String, dynamic> toMap() {
+    return {
+      'isMove': isMove,
+      'top': top,
+      'left': left,
+      'previewChild': previewChild,
+      'previewColor': previewColor,
+      'previewCallbackData': previewCallbackData,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'PreviewItem{isMove: $isMove, top: $top, left: $left, previewChild: $previewChild, previewColor: $previewColor, previewCallbackData: $previewCallbackData}';
+  }
+
 }

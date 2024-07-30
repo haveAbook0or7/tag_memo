@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tag_memo/customWidget/customTile.dart';
-import 'theme/color.dart';
+import 'theme/custom_material_color.dart';
 import 'theme/dynamic_theme.dart';
 import 'theme/theme_type.dart';
 
@@ -12,27 +12,31 @@ class SetTheme extends StatefulWidget {
 class _SetThemeState extends State<SetTheme> {
   @override
   Widget build(BuildContext context) {
+    final mapThemeTypeViewName = ThemeType.getViewNames();
+    final mapCustomMaterialColor = CustomMaterialColor.toMap();
+
       return Scaffold(
         appBar: AppBar(title: const Text('テーマカラー設定'),),
         /******************************************************* AppBar*/
         body: LayoutBuilder(
           builder: (context, constraints) {
             return ListView.separated(
-              itemCount: MyColor.themeName.length,
+              itemCount: mapThemeTypeViewName.length,
               itemBuilder: (context, index) {
+                final key = mapThemeTypeViewName.keys.elementAt(index);
+
                 return CustomTile(
                   title: Text(
-                    MyColor.themeName[index],
+                    mapThemeTypeViewName[key]!,
                     style: const TextStyle(fontSize: 16,),
                   ),
                   trailing: Row(children: <Widget>[
-                    Icon(Icons.stop_circle,color: MyColor.themeColor[index]![100],),
-                    Icon(Icons.stop_circle,color: MyColor.themeColor[index]![200],),
-                    Icon(Icons.stop_circle,color: MyColor.themeColor[index]![300],),
+                    Icon(Icons.stop_circle,color: mapCustomMaterialColor[key]![100],),
+                    Icon(Icons.stop_circle,color: mapCustomMaterialColor[key]![200],),
+                    Icon(Icons.stop_circle,color: mapCustomMaterialColor[key]![300],),
                   ],),
                   onTap: () async {
-                    final themeName = ThemeType().values()[index];
-                    await DynamicTheme.of(context)?.setTheme(themeName);
+                    await DynamicTheme.of(context)?.setTheme(key);
                     // ignore: use_build_context_synchronously
                     Navigator.pop(context);
                   },
