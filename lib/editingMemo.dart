@@ -83,7 +83,7 @@ class EditingMemoState extends State<EditingMemo> {
                 context: context,
                 barrierDismissible: false,
                 builder: (BuildContext context) {
-                  return DeleteDialog(orderId: _memo.orderId,);
+                  return DeleteDialog(memoId: _memo.memoId,);
                 },
               ).then((value) async {
                 if(value != 'cancel'){

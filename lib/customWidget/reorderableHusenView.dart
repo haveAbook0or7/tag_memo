@@ -14,8 +14,8 @@ class ReorderableHusenView extends StatefulWidget {
     required int itemcount,
     required dynamic Function(int) callbackbuilder,
     HusenColor? Function(int)? colorsbuilder,
-    required void Function(List<dynamic> callbackList, int oldIndex, int newIndex,) onReorder,
-    required void Function(int index) onTap,
+    void Function(List<dynamic> callbackList, int oldIndex, int newIndex,)? onReorder,
+    void Function(int index)? onTap,
     Key key = const Key(''),
   }) : this._init(
     crossAxisCount: crossAxisCount,
@@ -44,8 +44,8 @@ class ReorderableHusenView extends StatefulWidget {
     required this.children,
     required this.callbackList,
     required this.colors,
-    required this.onReorder,
-    required this.onTap,
+    this.onReorder,
+    this.onTap,
   }) : super(key: key);
 
   /// 列の数
@@ -64,9 +64,9 @@ class ReorderableHusenView extends StatefulWidget {
   late List<HusenColor?> colors = [];
   late HusenColor Function(int) colorsbuilder;
   /// 入れ替え後keysを親へ渡す
-  late void Function(List<dynamic> callbackList, int oldIndex, int newIndex,) onReorder;
+  late void Function(List<dynamic> callbackList, int oldIndex, int newIndex,)? onReorder;
   /// ジェスチャー類
-  late void Function(int index) onTap;
+  late void Function(int index)? onTap;
   /// 定数
   final String imgPath = 'images/Wood_Cedar.jpeg';
   final Size imgOriginSize = const Size(800, 500);
@@ -142,14 +142,16 @@ class ReorderableHusenViewState extends State<ReorderableHusenView> {
                 left: childlenPosition[index]!.dx,
                 child: GestureDetector(
                   onTap: (){
-                    widget.onTap(index);
+                    widget.onTap!(index);
                   },
                   // ----- 付箋入れ替え開始処理 -----------------------------------
                   onLongPressStart: (LongPressStartDetails details) {
+                    // onReorderがnullの場合、処理をキャンセル
+                    if(widget.onReorder == null){ return; }
                     setState(() {
                       /** フラグをセット */
                       preview.isMove = widget.children[index] != null;
-                      /// アイテムが空の場合、今後の処理をキャンセル
+                      // アイテムが空の場合、今後の処理をキャンセル
                       if(!preview.isMove){ return; }
 
                       /** プレビューウィジェットに移動するアイテムを移す */
@@ -164,6 +166,8 @@ class ReorderableHusenViewState extends State<ReorderableHusenView> {
                   },
                   // ----- 付箋入れ替え移動処理 -----------------------------------
                   onLongPressMoveUpdate: (LongPressMoveUpdateDetails details) {
+                    // onReorderがnullの場合、処理をキャンセル
+                    if(widget.onReorder == null){ return; }
                     if(preview.isMove){
                       setState(() {
                         /** 動きに合わせてプレビューウィジェットの座標を補正する */
@@ -174,6 +178,8 @@ class ReorderableHusenViewState extends State<ReorderableHusenView> {
                   },
                   // ----- 付箋入れ替え終了処理 -----------------------------------
                   onLongPressEnd: (LongPressEndDetails details) async {
+                    // onReorderがnullの場合、処理をキャンセル
+                    if(widget.onReorder == null){ return; }
                     if (preview.isMove) {
                       /** 移動先の座標 */
                       final dx = childlenPosition[index]!.dx + details.localPosition.dx;
@@ -213,11 +219,7 @@ class ReorderableHusenViewState extends State<ReorderableHusenView> {
                       });
 
                       /** onReorderを発火 */
-                      widget.onReorder(
-                        widget.callbackList, 
-                        index,
-                        moved,
-                      );
+                      widget.onReorder!(widget.callbackList, index, moved,);
                     }
                   },
                   /** アイテム */

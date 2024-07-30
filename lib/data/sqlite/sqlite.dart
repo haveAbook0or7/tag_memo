@@ -21,7 +21,8 @@ final Future<Database> database = getDatabasesPath().then((String path) {
         CREATE TABLE memo(
           id TEXT PRIMARY KEY, 
           memo TEXT, 
-          backColor INTEGER
+          backColor INTEGER,
+          delDateTime TEXT
         )
         '''
       );
@@ -44,6 +45,8 @@ final Future<Database> database = getDatabasesPath().then((String path) {
       await db.execute('INSERT INTO memoOrder (id, memoId) VALUES (0, "20240101-000000")');
       await db.execute('INSERT INTO memo (id, memo, backColor) VALUES ("20240101-000001", "サンプルサンプルサンプルサンプル\nサンプル", 500)');
       await db.execute('INSERT INTO memoOrder (id, memoId) VALUES (1, "20240101-000001")');
+      await db.execute('INSERT INTO memo (id, memo, backColor) VALUES ("20250101-000001", "サンプルサンプルサンプルサンプル\nサンプル", 500)');
+      await db.execute('INSERT INTO memoOrder (id, memoId) VALUES (2, "20250101-000001")');
 
     },
     version: 1,
@@ -169,10 +172,16 @@ Future<int> getNewOrderId() async {
 }
 
 /* メモ論理削除 */
-Future<void> deleteMemoOrder(int orderId) async {
+Future<void> deleteMemoOrder(String memoId) async {
   final db = await database;
-  // memoOrderのレコードを削除しメモを論理削除する。
-  await db.delete('memoOrder', where: 'id = ?', whereArgs: [orderId]);
+  /** memoOrderのレコードを削除 */
+  await db.delete('memoOrder', where: 'memoId = ?', whereArgs: [memoId]);
+  /** memoのdelDateTimeを削除した日付で更新 */
+  final delDateTime = DateFormat('yyyyMMdd-HHmmss').format(DateTime.now());
+  await db.rawUpdate(
+    'UPDATE memo SET delDateTime = ? WHERE id = ?',
+    [delDateTime, memoId],
+  );
 }
 
 /* memoOrder更新 */
@@ -180,7 +189,6 @@ Future<void> updateMemoOrder(int orderId, String memoId) async {
   final db = await database;
 
   await db.execute(
-    // 'UPSERT memoOrder SET memoId = ? WHERE id = ?',
     'REPLACE INTO memoOrder(id, memoId) VALUES(?, ?);',
     [orderId, memoId,],
   );
@@ -192,7 +200,7 @@ Future<List<Memo?>> getGarbageMemoPreview({String orderby='desc'}) async {
   // DBからデータリストを取得
   final List<Map<String, dynamic>> maps = await db.rawQuery(
     '''
-    SELECT id, SUBSTR(memo, 1, 150) AS memoPreview, backColor 
+    SELECT id AS memoId, SUBSTR(memo, 1, 150) AS memoPreview, backColor 
     FROM memo 
     WHERE id NOT IN ( SELECT memoId FROM memoOrder ) 
     ORDER BY id $orderby
@@ -202,10 +210,9 @@ Future<List<Memo?>> getGarbageMemoPreview({String orderby='desc'}) async {
   /** 空白データをnullで埋めつつ、プレビューデータを配列に */
   final previewList = <Memo?>[];  // プレビューデータ配列
   for (var i = 0; i < maps.length; i++) {
-    debugPrint("getGarbageMemoPreview: "+maps[i].toString());
     // DBから取得したデータを配列に追加
     previewList.add(Memo(
-      orderId: maps[i]['orderId'] as int,
+      orderId: -1,
       memoId: maps[i]['memoId'] as String,
       memoPreview: maps[i]['memoPreview'] as String?,
       backColor: maps[i]['backColor'] as int,
@@ -227,24 +234,34 @@ Future<void> repairMemo(String memoId) async {
     'INSERT INTO memoOrder(id, memoId) VALUES (?, ?)',
     [orderId, memoId],
   );
+  /** memoのdelDateTimeをnullで更新 */
+  await db.rawUpdate(
+    'UPDATE memo SET delDateTime = ? WHERE id = ?',
+    [null, memoId],
+  );
+}
+
+/* 論理削除されているメモデータを完全削除 */
+Future<void> deleteForeverMemo(String memoId) async {
+  final db = await database;
+  // memoのレコードを削除しメモを完全削除する。
+  await db.delete('memo', where: 'id NOT IN ( SELECT memoId FROM memoOrder ) AND id = ?', whereArgs: [memoId]);
 }
 
 /* 一定期間内の論理削除されたメモを削除 */
-Future<void> deleteGarbageMemo(DateTime? staDateTime, DateTime? endDateTime) async {
-  // WHERE mO.memoId >= "20240101-000000" AND mO.memoId <= "20240101-000003"
-  final staId =  DateFormat('yyyyMMdd-HHmmss').format(staDateTime ?? DateTime(1900));
-  final endId =  DateFormat('yyyyMMdd-HHmmss').format(endDateTime ?? DateTime.now());
-
+Future<void> deleteGarbageMemo({DateTime? staDateTime, DateTime? endDateTime}) async {
   final db = await database;
+  // 削除する期間のmemoIdを加工
+  final staDt =  DateFormat('yyyyMMdd-HHmmss').format(staDateTime ?? DateTime(1900));
+  final endDt =  DateFormat('yyyyMMdd-HHmmss').format(endDateTime ?? DateTime.now());
+  // 一定期間のメモを完全削除
   await db.rawDelete(
     '''
     DELETE 
-    FROM memo AS m 
+    FROM memo 
     WHERE id NOT IN ( SELECT memoId FROM memoOrder ) 
-    AND id >= ? AND id <= ?
+    AND delDateTime >= ? AND delDateTime <= ?
     ''',
-    [staId, endId],
+    [staDt, endDt],
   );
-  
-  //('memo', where: 'id >= ? AND id <= ?', whereArgs: [staId, endId]);
 }

@@ -15,6 +15,7 @@ import 'data/shared_preferences/sharedPreferences.dart';
 import 'setFont.dart';
 import 'setTheme.dart';
 import 'theme/dynamic_theme.dart';
+import 'viewGarbageMemo.dart';
 
 void main(){
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +33,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /** アプリ起動時に30日以上前の論理削除されたデータを削除 */
+    final before30dt = DateTime.now().add(const Duration(days: -30));
+    deleteGarbageMemo(endDateTime: DateTime(before30dt.year, before30dt.month, before30dt.day));
+
     return DynamicTheme(
       themedWidgetBuilder: (context, theme) {
         return MaterialApp(
@@ -65,14 +70,18 @@ class _TagMemoState extends State<TagMemo> {
   /* メモプレビューリスト */
   List<Memo?> _previewList = [];
 
-  List<Widget?> drawerLeadingIcon = [null, const Icon(Icons.format_color_fill), const Icon(Icons.text_fields)];
-  List<String?> drawerTitleText = [null, 'テーマカラー', 'フォント'];
-  List<Widget?> drawerOnTap = [null, SetTheme(), SetFont()];
+  List<Widget?> drawerLeadingIcon = [
+    null,
+    const Icon(Icons.format_color_fill),
+    const Icon(Icons.text_fields),
+    const Icon(Icons.delete_outline),
+  ];
+  List<String?> drawerTitleText = [null, 'テーマカラー', 'フォント', 'ゴミ箱'];
+  List<Widget?> drawerOnTap = [null, SetTheme(), SetFont(), ViewGarbageMemo()];
 
   Map<String,Color> fontColors = {'ブラック': Colors.black, 'ダークグレイ': Colors.black45, 'ホワイト': Colors.white};
   double fsize = 16;
   Color fcolor = Colors.white;
-
   /* ローディング処理 */
   Future<void> loading() async {
     /** 更新終わるまでグルグルを出しとく */
@@ -125,7 +134,7 @@ class _TagMemoState extends State<TagMemo> {
           );
         },),
       ),
-      /** メイン場面 ********************************************************/
+      /** メイン画面 ********************************************************/
       body: LayoutBuilder(builder: (context, constraints) {
         deviceHeight = constraints.maxHeight;
         deviceWidth = constraints.maxWidth;
@@ -173,7 +182,7 @@ class _TagMemoState extends State<TagMemo> {
                   await updateMemoOrder(mvsrcIndex, sourcePlaceMemo.memoId);
                 }else{                        // 入れ替え先にデータが存在しない場合
                   // 入れ替え元座標を削除(nullを入れ替え元座標にコピーする)
-                  await deleteMemoOrder(mvsrcIndex);
+                  await deleteMemoOrder(targetPlaceMemo!.memoId);
                 }
                 if(targetPlaceMemo != null){  // NOTE: 型がdynamicの都合上nullチェックをするが、仕様上nullであることはない。
                   // 入れ替え元座標にあったメモを入れ替え先座標にコピー

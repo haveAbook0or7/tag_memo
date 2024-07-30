@@ -3,10 +3,10 @@ import 'package:tag_memo/data/sqlite/sqlite.dart';
 
 class DeleteDialog extends StatefulWidget {
   const DeleteDialog({
-    required this.orderId,
+    required this.memoId,
     Key key = const Key(''),
   }) : super(key: key);
-  final int orderId;
+  final String memoId;
 
   @override
   _DeleteDialogState createState() => _DeleteDialogState();
@@ -65,7 +65,7 @@ class _DeleteDialogState extends State<DeleteDialog> {
                             ),
                             child: const Text('削除', style: TextStyle(color: Colors.white)),
                             onPressed: () {
-                              deleteMemoOrder(widget.orderId).then((_) => Navigator.of(context).pop());
+                              deleteMemoOrder(widget.memoId).then((_) => Navigator.of(context).pop());
                               // Navigator.of(context).pop();
                             },
                           ),
