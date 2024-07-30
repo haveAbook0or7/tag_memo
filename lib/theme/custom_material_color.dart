@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:tag_memo/theme/theme_type.dart';
 
-import 'theme_type.dart';
 
 class CustomMaterialColor{
   /*

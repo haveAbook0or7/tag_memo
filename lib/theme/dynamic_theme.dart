@@ -1,11 +1,9 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import './app_theme.dart';
-import './theme_type.dart';
-import '../data/shared_preferences/sharedPreferences.dart';
+import 'package:tag_memo/data/shared_preferences/sharedPreferences.dart';
+import 'package:tag_memo/theme/app_theme.dart';
+import 'package:tag_memo/theme/theme_type.dart';
 
 
 typedef ThemedWidgetBuilder = Widget Function(BuildContext context, ThemeData data);

@@ -1,13 +1,12 @@
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tag_memo/customWidget/customDialog.dart';
 import 'package:tag_memo/customWidget/husenContainer.dart';
+import 'package:tag_memo/data/other/husen_color_palette.dart';
 import 'package:tag_memo/data/sqlite/memo.dart';
-
-import 'customWidget/deleteDialog.dart';
-import 'data/other/husen_color_palette.dart';
-import 'data/sqlite/sqlite.dart';
-import 'theme/custom_material_color.dart';
+import 'package:tag_memo/data/sqlite/sqlite.dart';
+import 'package:tag_memo/theme/custom_material_color.dart';
 
 
 class EditingMemo extends StatefulWidget {
@@ -44,7 +43,7 @@ class EditingMemoState extends State<EditingMemo> {
   /* ローディング処理 */
   Future<void> loading() async {
     /** 更新終わるまでグルグルを出しとく */
-    setState(() => cpi = CircularProgressIndicator());
+    setState(() => cpi = const CircularProgressIndicator());
     /** テーマカラーを取得 */
     themeColor = await ThemeColor().getBasicAndThemeColor();
     /** メモ取得 */
@@ -83,11 +82,18 @@ class EditingMemoState extends State<EditingMemo> {
                 context: context,
                 barrierDismissible: false,
                 builder: (BuildContext context) {
-                  return DeleteDialog(memoId: _memo.memoId,);
+                  return CustomDialog(
+                    msgtext: '付箋を削除しますか？',
+                    okBtnText: '削除',
+                    cancelOnPressed: () => Navigator.of(context).pop('cancel'),
+                    okOnPressed: (){
+                      deleteMemoOrder(_memo.memoId).then((_) => Navigator.of(context).pop('ok'));
+                    },
+                  );
                 },
               ).then((value) async {
-                if(value != 'cancel'){
-                  Navigator.pop(context,);
+                if(value == 'ok'){ // 削除処理を実行した場合、編集画面を閉じる。
+                  Navigator.of(context).pop();
                 }
               });
             },
@@ -108,8 +114,26 @@ class EditingMemoState extends State<EditingMemo> {
                 child: SizedBox(
                   height: deviceHeight-48,
                   child: TextField(
+                    contextMenuBuilder: (context, editableTextState){
+                      // コンテキストメニューを日本語化
+                      final originBtnItems = editableTextState.contextMenuButtonItems;
+                      final newBtnLabels = {
+                        ContextMenuButtonType.cut: '切り取り',
+                        ContextMenuButtonType.copy: 'コピー',
+                        ContextMenuButtonType.paste: '貼り付け',
+                        ContextMenuButtonType.selectAll: '全て選択'
+                      };
+                      final newBtnItems = <ContextMenuButtonItem>[];
+                      for (var i = 0; i < originBtnItems.length; i++) {
+                        newBtnItems.add(originBtnItems[i].copyWith(label: newBtnLabels[originBtnItems[i].type]));
+                      }
+                      return AdaptiveTextSelectionToolbar.buttonItems(
+                        anchors: editableTextState.contextMenuAnchors,
+                        buttonItems: newBtnItems,
+                      );
+                    },
                     controller: controller,
-                    style: TextStyle(fontSize: fontSize, color: fontColor),
+                    style: TextStyle(fontSize: fontSize, color: fontColor, height: 1.4),
                     maxLines: 500,
                     decoration: const InputDecoration(
                       border: InputBorder.none,
@@ -124,7 +148,7 @@ class EditingMemoState extends State<EditingMemo> {
             /** 下部のアクションバー */
             Positioned(
               bottom: 0,
-              child: Container(
+              child: SizedBox(
                 height: 56,
                 width: deviceWidth,
                 child: GestureDetector(
@@ -145,12 +169,13 @@ class EditingMemoState extends State<EditingMemo> {
                         }else{                  // 編集
                           await updateMemo(_memo);
                         }
-                        Navigator.pop(context,);
+                        // ignore: use_build_context_synchronously
+                        Navigator.of(context).pop();
                       },
                     ),
                     bottomNavigationBar: BottomAppBar(
                       color: Theme.of(context).colorScheme.primary,
-                      notchMargin: 5.0,
+                      notchMargin: 5,
                       shape: const AutomaticNotchedShape(
                         RoundedRectangleBorder(),
                         StadiumBorder(
@@ -208,7 +233,7 @@ class EditingMemoState extends State<EditingMemo> {
                           husencolor: HusenColor(color: color, backSideColor: backSide.withValue(backSide.value-0.15).toColor()),
                         ),
                       );
-                    })
+                    }),
                   ),
                 ],),
               ),
@@ -224,7 +249,7 @@ class EditingMemoState extends State<EditingMemo> {
               ),
             )
           ],);
-      }),
+      },),
     );
   }
 }

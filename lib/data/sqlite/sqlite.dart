@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-
 import 'package:tag_memo/data/sqlite/memo.dart';
 
 
@@ -12,9 +10,10 @@ final Future<Database> database = getDatabasesPath().then((String path) {
     join(path, 'memo_database.db'),
     onCreate: (Database db, int version) async {
       /**
-       * memo.id: "yyyymmdd-hhmmss"
+       * memo.id: "yyyymmdd-hhmmssffffff"
        * memo.memo: free
        * memo.backColor: 50, 100, 200, 300, 400, 500, 600, 700, 800, 900
+       * memo.delDateTime: "yyyymmdd-hhmmssffffff"
        */
       await db.execute(
         '''
@@ -40,14 +39,13 @@ final Future<Database> database = getDatabasesPath().then((String path) {
         )
         '''
       );
-      // テスト用
+      // サンプル
       await db.execute('INSERT INTO memo (id, memo, backColor) VALUES ("20240101-000000", "サンプルサンプルサンプルサンプル\nサンプル", 600)');
       await db.execute('INSERT INTO memoOrder (id, memoId) VALUES (0, "20240101-000000")');
       await db.execute('INSERT INTO memo (id, memo, backColor) VALUES ("20240101-000001", "サンプルサンプルサンプルサンプル\nサンプル", 500)');
       await db.execute('INSERT INTO memoOrder (id, memoId) VALUES (1, "20240101-000001")');
       await db.execute('INSERT INTO memo (id, memo, backColor) VALUES ("20250101-000001", "サンプルサンプルサンプルサンプル\nサンプル", 500)');
       await db.execute('INSERT INTO memoOrder (id, memoId) VALUES (2, "20250101-000001")');
-
     },
     version: 1,
   );
@@ -119,7 +117,8 @@ Future<Memo> getMemo(String memoId) async {
 Future<void> insertMemo(Memo memo) async {
   final db = await database;
 
-  final memoId = DateFormat('yyyyMMdd-HHmmss').format(DateTime.now());
+  final now = DateTime.now();
+  final memoId = DateFormat('yyyyMMdd-HHmmss${now.millisecond}${now.microsecond}').format(now);
   /** memoテーブルに登録 */
   await db.rawInsert(
     'INSERT INTO memo(id, memo, backColor) VALUES (?, ?, ?)',
@@ -127,7 +126,7 @@ Future<void> insertMemo(Memo memo) async {
   );
 
   /** orderIdを取得 */
-  final orderId = await getNewOrderId();
+  final orderId = memo.orderId != -1 ? memo.orderId : await getNewOrderId();
 
   /** memoOrderテーブルに登録 */
   await db.rawInsert(
@@ -177,7 +176,8 @@ Future<void> deleteMemoOrder(String memoId) async {
   /** memoOrderのレコードを削除 */
   await db.delete('memoOrder', where: 'memoId = ?', whereArgs: [memoId]);
   /** memoのdelDateTimeを削除した日付で更新 */
-  final delDateTime = DateFormat('yyyyMMdd-HHmmss').format(DateTime.now());
+  final now = DateTime.now();
+  final delDateTime = DateFormat('yyyyMMdd-HHmmss${now.millisecond}${now.microsecond}').format(now);
   await db.rawUpdate(
     'UPDATE memo SET delDateTime = ? WHERE id = ?',
     [delDateTime, memoId],
@@ -252,8 +252,10 @@ Future<void> deleteForeverMemo(String memoId) async {
 Future<void> deleteGarbageMemo({DateTime? staDateTime, DateTime? endDateTime}) async {
   final db = await database;
   // 削除する期間のmemoIdを加工
-  final staDt =  DateFormat('yyyyMMdd-HHmmss').format(staDateTime ?? DateTime(1900));
-  final endDt =  DateFormat('yyyyMMdd-HHmmss').format(endDateTime ?? DateTime.now());
+  staDateTime = staDateTime ?? DateTime(1900);
+  endDateTime = endDateTime ?? DateTime.now();
+  final staDt =  DateFormat('yyyyMMdd-HHmmss${staDateTime.millisecond}${staDateTime.microsecond}').format(staDateTime);
+  final endDt =  DateFormat('yyyyMMdd-HHmmss${endDateTime.millisecond}${endDateTime.microsecond}').format(endDateTime);
   // 一定期間のメモを完全削除
   await db.rawDelete(
     '''

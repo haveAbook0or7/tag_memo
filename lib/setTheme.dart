@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:tag_memo/customWidget/customTile.dart';
-import 'theme/custom_material_color.dart';
-import 'theme/dynamic_theme.dart';
-import 'theme/theme_type.dart';
+import 'package:tag_memo/theme/custom_material_color.dart';
+import 'package:tag_memo/theme/dynamic_theme.dart';
+import 'package:tag_memo/theme/theme_type.dart';
+
 
 class SetTheme extends StatefulWidget {
   @override
@@ -28,7 +29,7 @@ class _SetThemeState extends State<SetTheme> {
                 return CustomTile(
                   title: Text(
                     mapThemeTypeViewName[key]!,
-                    style: const TextStyle(fontSize: 16,),
+                    style: const TextStyle(fontSize: 16, height: 1.4),
                   ),
                   trailing: Row(children: <Widget>[
                     Icon(Icons.stop_circle,color: mapCustomMaterialColor[key]![100],),
@@ -42,9 +43,9 @@ class _SetThemeState extends State<SetTheme> {
                   },
                 );
               },
-              separatorBuilder: (context, index) => Divider(height:3)
+              separatorBuilder: (context, index) => const Divider(height:3),
             );
-          }
+          },
         ),
       );
   }

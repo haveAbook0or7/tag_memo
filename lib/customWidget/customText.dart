@@ -1,6 +1,6 @@
-// ignore: file_names
 import 'dart:math';
 import 'package:flutter/material.dart';
+
 
 class CustomText extends StatelessWidget {
   const CustomText(

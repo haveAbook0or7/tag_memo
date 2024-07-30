@@ -1,7 +1,6 @@
-// ignore: file_names
 import 'package:flutter/material.dart';
+import 'package:tag_memo/customWidget/customTile.dart';
 
-import 'customTile.dart';
 
 class DropdownTile extends StatelessWidget {
   const DropdownTile({

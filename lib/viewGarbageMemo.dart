@@ -1,16 +1,19 @@
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tag_memo/customWidget/customAlert.dart';
+import 'package:tag_memo/customWidget/customDialog.dart';
+import 'package:tag_memo/customWidget/customText.dart';
 import 'package:tag_memo/customWidget/husenContainer.dart';
+import 'package:tag_memo/customWidget/reorderableHusenView.dart';
+import 'package:tag_memo/customWidget/repairDialog.dart';
+import 'package:tag_memo/data/backup/backup.dart';
+import 'package:tag_memo/data/other/husen_color_palette.dart';
+import 'package:tag_memo/data/shared_preferences/sharedPreferences.dart';
 import 'package:tag_memo/data/sqlite/memo.dart';
 import 'package:tag_memo/data/sqlite/sqlite.dart';
 import 'package:tag_memo/theme/custom_material_color.dart';
 
-import 'customWidget/customText.dart';
-import 'customWidget/reorderableHusenView.dart';
-import 'customWidget/repairDialog.dart';
-import 'data/other/husen_color_palette.dart';
-import 'data/shared_preferences/sharedPreferences.dart';
 
 class ViewGarbageMemo extends StatefulWidget {
   @override
@@ -60,7 +63,48 @@ class _ViewGarbageMemoState extends State<ViewGarbageMemo> {
   Widget build(BuildContext context) {
     /** 画面 */
     return Scaffold(
-      appBar: AppBar(title: const Text('ゴミ箱'),),
+      appBar: AppBar(title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('ゴミ箱'),
+          IconButton(icon: const Icon(Icons.restore_page), 
+            onPressed: () async {
+              /** バックアップデータからの復元確認ダイアログ表示 */
+              await showDialog<Map<String, dynamic>>(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return CustomDialog(
+                    msgtext: '付箋をバックアップデータから復元しますか？',
+                    okBtnText: '復元',
+                    cancelOnPressed: () => Navigator.of(context).pop({'op': 'cancel', 'status': -1}),
+                    okOnPressed: () async {
+                      /** 更新終わるまでグルグルを出しとく */
+                      setState(() => cpi = const CircularProgressIndicator());
+                      /** バックアップデータから復元処理 */
+                      final status = await restoreDatas();
+                      /** グルグル終わり */
+                      setState(() => cpi = null);
+                      // ignore: use_build_context_synchronously
+                      Navigator.of(context).pop({'op': 'ok', 'status': status});
+                    },
+                  );
+                },
+              ).then((res) async {
+                if(res!['op'] == 'ok'){ // バックアップからの復元処理を実行した場合、実行結果をアラートで表示する。
+                  await showDialog<String>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) {
+                      return CustomAlert(msgtext: res['status'] == 200 ? '付箋の復元に成功しました。' : '付箋の復元に失敗しました。ステータス: ${res['status']}',);
+                    },
+                  ).then((res) => loading());
+                }
+              });
+            },
+          ),
+        ],
+      ),),
       body: LayoutBuilder(builder: (context, constraints) {
         deviceHeight = constraints.maxHeight;
         deviceWidth = constraints.maxWidth;
@@ -80,7 +124,7 @@ class _ViewGarbageMemoState extends State<ViewGarbageMemo> {
                   _previewList[index]!.memoPreview ?? '',
                   overflow: TextOverflow.ellipsis,
                   maxLines: 7-ctStyleIndex,
-                  style: TextStyle(fontSize: fontsizes[ctStyleIndex], color: fcolor),
+                  style: TextStyle(fontSize: fontsizes[ctStyleIndex], color: fcolor, height: 1.4),
                 );
               },
               callbackbuilder: (int index){
@@ -104,15 +148,13 @@ class _ViewGarbageMemoState extends State<ViewGarbageMemo> {
                   builder: (BuildContext context) {
                     return RepairDialog(memoId: _previewList[index]!.memoId,);
                   },
-                ).then((value) async {
-                  await loading();
-                });
+                ).then((value) => loading());
               },
             ),
             /** ロード */
             Container(
               alignment: Alignment.topCenter,
-              padding: EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.only(top: 10),
               child: Container(
                 alignment: Alignment.topCenter,
                 width: 25, height: 25,

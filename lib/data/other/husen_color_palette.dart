@@ -1,11 +1,10 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tag_memo/data/shared_preferences/sharedPreferences.dart';
+import 'package:tag_memo/theme/custom_material_color.dart';
+import 'package:tag_memo/theme/theme_type.dart';
 
-import '../../theme/custom_material_color.dart';
-import '../../theme/theme_type.dart';
 
 class ThemeColor {
   static Map<String, MaterialColor> appThemeColor = CustomMaterialColor.toMap();

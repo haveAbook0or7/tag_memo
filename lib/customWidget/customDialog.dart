@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:tag_memo/data/sqlite/sqlite.dart';
 
-class DeleteDialog extends StatefulWidget {
-  const DeleteDialog({
-    required this.memoId,
+
+class CustomDialog extends StatefulWidget {
+  const CustomDialog({
+    required this.msgtext,
+    this.cancelOnPressed,
+    this.okOnPressed,
+    String? okBtnText,
     Key key = const Key(''),
-  }) : super(key: key);
-  final String memoId;
+  }) : 
+    okBtnText = okBtnText ?? 'OK',
+    super(key: key);
+  final String msgtext;
+  final void Function()? cancelOnPressed;
+  final void Function()? okOnPressed;
+  final String okBtnText;
 
   @override
-  _DeleteDialogState createState() => _DeleteDialogState();
+  _CustomDialogState createState() => _CustomDialogState();
 }
 
-class _DeleteDialogState extends State<DeleteDialog> {
+class _CustomDialogState extends State<CustomDialog> {
   @override
   Widget build(BuildContext context) {
 
@@ -35,7 +43,7 @@ class _DeleteDialogState extends State<DeleteDialog> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    const Text('付箋を削除しますか？', style: TextStyle(color: Colors.black54)),
+                    Text(widget.msgtext, style: const TextStyle(color: Colors.black54)),
                     Container(
                       alignment: Alignment.topCenter,
                       margin: EdgeInsets.only(
@@ -54,8 +62,8 @@ class _DeleteDialogState extends State<DeleteDialog> {
                               backgroundColor: Theme.of(context).colorScheme.primary,
                               shape: BeveledRectangleBorder(borderRadius: BorderRadius.circular(5),),
                             ),
+                            onPressed: widget.cancelOnPressed,
                             child: const Text('キャンセル', style: TextStyle(color: Colors.white)),
-                            onPressed: () => Navigator.pop(context, 'cancel'),
                           ),
                           TextButton(
                             style: TextButton.styleFrom(
@@ -63,11 +71,8 @@ class _DeleteDialogState extends State<DeleteDialog> {
                               backgroundColor: Theme.of(context).colorScheme.secondary,
                               shape: BeveledRectangleBorder(borderRadius: BorderRadius.circular(5),),
                             ),
-                            child: const Text('削除', style: TextStyle(color: Colors.white)),
-                            onPressed: () {
-                              deleteMemoOrder(widget.memoId).then((_) => Navigator.of(context).pop());
-                              // Navigator.of(context).pop();
-                            },
+                            onPressed: widget.okOnPressed,
+                            child: Text(widget.okBtnText, style: const TextStyle(color: Colors.white)),
                           ),
                         ],
                       ),

@@ -2,20 +2,22 @@ import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tag_memo/customWidget/customAlert.dart';
+import 'package:tag_memo/customWidget/customText.dart';
 import 'package:tag_memo/customWidget/husenContainer.dart';
+import 'package:tag_memo/customWidget/reorderableHusenView.dart';
+import 'package:tag_memo/data/backup/backup.dart';
+import 'package:tag_memo/data/other/husen_color_palette.dart';
+import 'package:tag_memo/data/shared_preferences/sharedPreferences.dart';
 import 'package:tag_memo/data/sqlite/memo.dart';
 import 'package:tag_memo/data/sqlite/sqlite.dart';
 import 'package:tag_memo/editingMemo.dart';
+import 'package:tag_memo/setFont.dart';
+import 'package:tag_memo/setTheme.dart';
 import 'package:tag_memo/theme/custom_material_color.dart';
+import 'package:tag_memo/theme/dynamic_theme.dart';
+import 'package:tag_memo/viewGarbageMemo.dart';
 
-import 'customWidget/customText.dart';
-import 'customWidget/reorderableHusenView.dart';
-import 'data/other/husen_color_palette.dart';
-import 'data/shared_preferences/sharedPreferences.dart';
-import 'setFont.dart';
-import 'setTheme.dart';
-import 'theme/dynamic_theme.dart';
-import 'viewGarbageMemo.dart';
 
 void main(){
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +26,7 @@ void main(){
     DeviceOrientation.portraitUp,//縦固定
   ]);
   //runApp
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 
@@ -108,7 +110,29 @@ class _TagMemoState extends State<TagMemo> {
   Widget build(BuildContext context) {
     /** 画面 */
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title),),
+      appBar: AppBar(title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(widget.title),
+          IconButton(icon: const Icon(Icons.backup), 
+            onPressed: () async {
+              /** 更新終わるまでグルグルを出しとく */
+              setState(() => cpi = const CircularProgressIndicator());
+              final status = await backupDatas();
+              // ignore: use_build_context_synchronously
+              await showDialog<String>(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return CustomAlert(msgtext: status == 200 ? 'バックアップが完了しました。' : 'バックアップに失敗しました。ステータス: $status',);
+                },
+              );
+              /** グルグル終わり */
+              setState(() => cpi = null);
+            },
+          ),
+        ],
+      ),),
       /** サイドメニュー ********************************************************/
       drawer: Drawer(
         child: ListView.builder(
@@ -154,7 +178,7 @@ class _TagMemoState extends State<TagMemo> {
                   _previewList[index]!.memoPreview ?? '',
                   overflow: TextOverflow.ellipsis,
                   maxLines: 7-ctStyleIndex,
-                  style: TextStyle(fontSize: fontsizes[ctStyleIndex], color: fcolor),
+                  style: TextStyle(fontSize: fontsizes[ctStyleIndex], color: fcolor, height: 1.4),
                 );
               },
               callbackbuilder: (int index){

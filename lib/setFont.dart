@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'customWidget/dropdownTile.dart';
+import 'package:tag_memo/customWidget/dropdownTile.dart';
+
 
 class SetFont extends StatefulWidget {
   @override
@@ -57,13 +58,13 @@ class _SetFontState extends State<SetFont> {
                           decoration: const BoxDecoration(
                             color: Color(0xfffcd575),
                             border: Border(
-                              left: BorderSide(color: Colors.black45, width: 1),
-                              top: BorderSide(color: Colors.black45, width: 1),
+                              left: BorderSide(color: Colors.black45,),
+                              top: BorderSide(color: Colors.black45,),
                             ),
                           ),
-                          child: Text('あいうABCabc亜衣宇', style: TextStyle(fontSize: double.parse(fsize), color: fontColors[fcolor]),)
+                          child: Text('あいうABCabc亜衣宇', style: TextStyle(fontSize: double.parse(fsize), color: fontColors[fcolor], height: 1.4),),
                         )
-                      ],)
+                      ],),
                     ),
                     /** フォントサイズ */
                     DropdownTile(
@@ -91,7 +92,7 @@ class _SetFontState extends State<SetFont> {
                   /** アイテムを順番に並べる */
                   return item[index];
                 },
-                separatorBuilder: (context, index) => const Divider(height: 3)
+                separatorBuilder: (context, index) => const Divider(height: 3),
               );
             } else {
               return const CircularProgressIndicator();

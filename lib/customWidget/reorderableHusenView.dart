@@ -1,4 +1,3 @@
-// ignore: file_names
 import 'dart:math';
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +5,6 @@ import 'package:tag_memo/customWidget/husenContainer.dart';
 
 
 class ReorderableHusenView extends StatefulWidget {
-
   ReorderableHusenView.builder({
     int crossAxisCount = 3,
     double axisSpacing = 4.0,

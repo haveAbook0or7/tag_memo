@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'custom_material_color.dart';
-import 'theme_type.dart';
+import 'package:tag_memo/theme/custom_material_color.dart';
+import 'package:tag_memo/theme/theme_type.dart';
 
 
 class AppTheme {
