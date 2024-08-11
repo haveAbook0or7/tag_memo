@@ -197,7 +197,7 @@ class _TagMemoState extends State<TagMemo> {
                 int mvsrcIndex,             // 入れ替え元のインデックス
                 int mvtarIndex,             // 入れ替え先のインデックス
               ) async {
-                final sourcePlaceMemo = callbackData[mvsrcIndex] as Memo?; // 入れ替え処理後、入れ替え元座標にあるメモ
+                final sourcePlaceMemo = callbackData.length > mvsrcIndex ? callbackData[mvsrcIndex] as Memo? : null; // 入れ替え処理後、入れ替え元座標にあるメモ
                 final targetPlaceMemo = callbackData[mvtarIndex] as Memo?; // 入れ替え処理後、入れ替え先座標にあるメモ
 
                 /** DBの入れ替え処理 */
