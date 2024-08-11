@@ -163,7 +163,7 @@ Future<int> getNewOrderId() async {
   }
   // 空白データがない場合、一番大きいorderId+1をorderIdとする。
   if(orderId == -1){
-    orderId = maps[maps.length-1]['id'] as int;
+    orderId = maps.isNotEmpty ? maps.last['id'] as int : -1;
     orderId++;
   }
 
